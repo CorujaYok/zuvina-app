@@ -1,0 +1,115 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #171020;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.zuvina {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.cabecalho h1 {
+  color: #b99aff;
+  font-size: 36px;
+  margin: 0;
+}
+
+.saldo {
+  background: linear-gradient(135deg, #6935d3, #32134f);
+  border-radius: 22px;
+  padding: 32px;
+}
+
+.saldo p {
+  margin-top: 0;
+}
+
+.saldo h2 {
+  font-size: 42px;
+  margin: 16px 0;
+}
+
+.acoes {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+button {
+  flex: 1;
+  background: #8157e8;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #996eff;
+}
+
+.historico {
+  background: #251b33;
+  padding: 24px;
+  border-radius: 18px;
+  margin-top: 32px;
+}
+
+.historico p {
+  color: #bcb2c9;
+}
+
+@media (max-width: 600px) {
+  .cabecalho {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .acoes {
+    flex-direction: column;
+  }
+}
+
+.lista-transacoes {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+
+.lista-transacoes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #49365e;
+}
+
+.lista-transacoes strong {
+  white-space: nowrap;
+}
+
+.receita {
+  color: #75e0a7;
+}
+
+.despesa {
+  color: #ff9393;
+}
