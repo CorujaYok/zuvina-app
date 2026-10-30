@@ -1,0 +1,95 @@
+.pagina-auth {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #171020;
+  padding: 24px;
+}
+
+.cartao-auth {
+  width: 100%;
+  max-width: 420px;
+  background: #251b33;
+  padding: 36px;
+  border-radius: 22px;
+}
+
+.logo-auth {
+  color: #b99aff;
+  text-align: center;
+  font-size: 40px;
+  margin: 0;
+}
+
+.slogan-auth {
+  text-align: center;
+  color: #bcb2c9;
+  margin-bottom: 36px;
+}
+
+.cartao-auth h2 {
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.cartao-auth form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cartao-auth label {
+  color: #d6c9e5;
+  font-size: 14px;
+}
+
+.cartao-auth input {
+  width: 100%;
+  background: #171020;
+  color: white;
+  border: 1px solid #514066;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 15px;
+}
+
+.cartao-auth input:focus {
+  outline: 2px solid #996eff;
+}
+
+.cartao-auth form button {
+  margin-top: 12px;
+  background: #8157e8;
+}
+
+.cartao-auth button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.mensagem-auth {
+  color: #d1a5ff;
+  font-size: 14px;
+}
+
+.trocar-auth {
+  text-align: center;
+  color: #bcb2c9;
+  margin-top: 24px;
+  margin-bottom: 6px;
+}
+
+.link-auth {
+  display: block;
+  margin: 0 auto;
+  background: transparent;
+  color: #b99aff;
+  padding: 8px;
+  width: auto;
+}
+
+.link-auth:hover {
+  background: transparent;
+  color: #d1a5ff;
+}

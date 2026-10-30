@@ -1,10 +1,29 @@
-
-:root {
-  font-family: Arial, sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+.barra-sessao {
+  max-width: 900px;
+  margin: 16px auto 0;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-body {
-  min-width: 320px;
+.barra-sessao span {
+  color: #bcb2c9;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.barra-sessao button {
+  flex: none;
+  width: auto;
+  padding: 10px 18px;
+  background: #4b293e;
+}
+
+.carregamento {
+  text-align: center;
+  margin-top: 80px;
+  color: #b99aff;
 }
