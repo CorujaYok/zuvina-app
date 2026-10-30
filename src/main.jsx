@@ -66,7 +66,7 @@ function Zuvina() {
         </button>
       </div>
 
-      <App />
+      <App key={sessao.user.id} userId={sessao.user.id} />
     </>
   );
 }

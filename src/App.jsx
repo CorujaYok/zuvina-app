@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "./lib/supabaseClient";
 import {
   PieChart,
   Pie,
@@ -49,17 +50,43 @@ function formatarData(data) {
   return convertida.toLocaleDateString("pt-BR");
 }
 
-function App() {
-  const [transacoes, setTransacoes] = useState(() => {
-    try {
-      const salvas = localStorage.getItem("zuvina-transacoes");
-      const dados = salvas ? JSON.parse(salvas) : [];
-      return Array.isArray(dados) ? dados : [];
-    } catch {
-      return [];
-    }
-  });
+function App({ userId }) {
 
+const [transacoes, setTransacoes] = useState([]);
+const [carregandoDados, setCarregandoDados] = useState(true);
+const [salvando, setSalvando] = useState(false);
+const [erroBanco, setErroBanco] = useState("");
+useEffect(() => {
+  let ativo = true;
+
+  async function carregarTransacoes() {
+    setCarregandoDados(true);
+    setErroBanco("");
+
+    const { data, error } = await supabase
+      .from("transacoes")
+      .select("*")
+      .eq("usuario_id", userId)
+      .order("data", { ascending: false });
+
+    if (!ativo) return;
+
+    if (error) {
+      console.error("Erro ao carregar transações:", error);
+      setErroBanco("Não foi possível carregar suas transações.");
+    } else {
+      setTransacoes(data ?? []);
+    }
+
+    setCarregandoDados(false);
+  }
+
+  carregarTransacoes();
+
+  return () => {
+    ativo = false;
+  };
+}, [userId]);
   const [tipo, setTipo] = useState("despesa");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
@@ -70,16 +97,64 @@ function App() {
   const [filtroCategoria, setFiltroCategoria] = useState("todas");
   const [pesquisa, setPesquisa] = useState("");
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        "zuvina-transacoes",
-        JSON.stringify(transacoes)
-      );
-    } catch (erro) {
-      console.error("Erro ao salvar transações:", erro);
-    }
-  }, [transacoes]);
+
+async function adicionarTransacao(evento) {
+  evento.preventDefault();
+
+  if (salvando || carregandoDados) return;
+
+  const entrada = valor.trim().replace(",", ".");
+
+  if (
+    !descricao.trim() ||
+   !/^\d+(\.\d{1,2})?$/.test(entrada)
+  ) {
+    setErro("Preencha a descrição e um valor válido.");
+    return;
+  }
+
+  const centavos = Math.round(Number(entrada) * 100);
+
+  if (
+    !Number.isSafeInteger(centavos) ||
+    centavos <= 0
+  ) {
+    setErro("O valor deve ser maior que zero.");
+    return;
+  }
+
+  setSalvando(true);
+  setErro("");
+  setErroBanco("");
+
+  const { data, error } = await supabase
+    .from("transacoes")
+    .insert({
+      usuario_id: userId,
+      descricao: descricao.trim(),
+      valor: centavos,
+      tipo,
+      categoria,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Erro ao salvar:", error);
+    setErroBanco("Não foi possível salvar a transação.");
+  } else {
+    setTransacoes((anteriores) => [
+      data,
+      ...anteriores,
+    ]);
+
+    setDescricao("");
+    setValor("");
+  }
+
+  setSalvando(false);
+}
+
 
   // Saldo de todas as transações
   const saldo = transacoes.reduce((total, t) => {
@@ -160,55 +235,38 @@ function App() {
     );
   }
 
-  function adicionarTransacao(evento) {
-    evento.preventDefault();
+ 
+async function excluirTransacao(id) {
+  if (salvando || carregandoDados) return;
 
-    const entrada = valor.trim().replace(",", ".");
-
-    if (
-      !descricao.trim() ||
-      !/^\d+(\.\d{1,2})?$/.test(entrada)
-    ) {
-      setErro("Preencha a descrição e um valor válido.");
-      return;
-    }
-
-    const centavos = Math.round(Number(entrada) * 100);
-
-    if (
-      !Number.isSafeInteger(centavos) ||
-      centavos <= 0
-    ) {
-      setErro("Digite um valor positivo válido.");
-      return;
-    }
-
-    const novaTransacao = {
-      id: crypto.randomUUID(),
-      descricao: descricao.trim(),
-      valor: centavos,
-      tipo,
-      categoria,
-      data: new Date().toISOString(),
-    };
-
-    setTransacoes((anteriores) => [
-      novaTransacao,
-      ...anteriores,
-    ]);
-
-    setDescricao("");
-    setValor("");
-    setErro("");
+  if (!window.confirm("Excluir esta transação?")) {
+    return;
   }
 
-  function excluirTransacao(id) {
-    if (!window.confirm("Excluir esta transação?")) return;
+  setSalvando(true);
+  setErroBanco("");
 
+  const { data, error } = await supabase
+    .from("transacoes")
+    .delete()
+    .eq("id", id)
+    .eq("usuario_id", userId)
+    .select("id");
+
+  if (error) {
+    console.error("Erro ao excluir:", error);
+    setErroBanco("Não foi possível excluir a transação.");
+  } else if (!data || data.length === 0) {
+    setErroBanco("A transação não foi encontrada ou não pôde ser excluída.");
+  } else {
     setTransacoes((anteriores) =>
       anteriores.filter((t) => t.id !== id)
     );
   }
+
+  setSalvando(false);
+}
+
 
   return (
     <div className="zuvina">
@@ -218,6 +276,17 @@ function App() {
       </header>
 
       <main>
+      {carregandoDados && (
+         <p className="aviso-banco">
+      Carregando suas transações...
+         </p>
+)}
+
+      {erroBanco && (
+          <p className="erro" role="alert">
+      {erroBanco}
+         </p>
+)}
         <section className="saldo">
           <p>Seu saldo geral</p>
           <h2>{formatarDinheiro(saldo)}</h2>
@@ -372,9 +441,13 @@ function App() {
 
             {erro && <p className="erro">{erro}</p>}
 
-            <button type="submit" className="botao-adicionar">
-              + Adicionar transação
-            </button>
+            <button
+           type="submit"
+           className="botao-adicionar"
+           disabled={salvando || carregandoDados || Boolean(erroBanco)}
+           >
+           {salvando ? "Aguarde..." : "+ Adicionar transação"}
+           </button>
           </form>
         </section>
 
@@ -414,7 +487,7 @@ function App() {
             </select>
           </div>
 
-          {transacoesFiltradas.length === 0 ? (
+         {!carregandoDados && !erroBanco && transacoesFiltradas.length === 0 ? (
             <p>Nenhuma transação encontrada.</p>
           ) : (
             <ul className="lista-transacoes">
@@ -453,5 +526,4 @@ function App() {
     </div>
   );
 }
-
 export default App;

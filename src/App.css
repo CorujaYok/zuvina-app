@@ -328,3 +328,12 @@ button:hover {
     height: 350px;
   }
 }
+.aviso-banco {
+  color: #d1a5ff;
+  margin: 20px 0;
+}
+.botao-adicionar:disabled,
+.botao-excluir:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
