@@ -355,3 +355,90 @@ button:hover {
 .botao-olho:hover {
   opacity: 0.7;
 }
+.formulario-edicao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+  padding: 15px;
+  background: #2a1c3a;
+  border-radius: 12px;
+}
+
+.formulario-edicao input,
+.formulario-edicao select {
+  padding: 10px;
+  border: 1px solid #60418a;
+  border-radius: 8px;
+  background: #1b1227;
+  color: white;
+}
+
+.acoes-edicao {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.acoes-edicao button {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+/* Organiza cada transação em duas colunas */
+.lista-transacoes li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Informações da transação */
+.detalhes-transacao {
+  min-width: 0;
+}
+
+/* Valor e botões */
+.valor-transacao {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Formulário ocupa toda a largura */
+.lista-transacoes li > .formulario-edicao {
+  grid-column: 1 / -1;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+}
+
+/* Botões de edição */
+.acoes-edicao {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.acoes-edicao button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Ajustes para celular */
+@media (max-width: 600px) {
+  .lista-transacoes li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .valor-transacao {
+    justify-content: flex-start;
+  }
+
+  .lista-transacoes li > .formulario-edicao {
+    grid-column: 1;
+  }
+}

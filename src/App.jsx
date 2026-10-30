@@ -52,6 +52,10 @@ function formatarData(data) {
 
 function App({ userId }) {
 
+const [transacaoEmEdicao, setTransacaoEmEdicao] = useState(null);
+const [descricaoEdicao, setDescricaoEdicao] = useState("");
+const [valorEdicao, setValorEdicao] = useState("");
+const [categoriaEdicao, setCategoriaEdicao] = useState("");
 const [transacoes, setTransacoes] = useState([]);
 const [carregandoDados, setCarregandoDados] = useState(true);
 const [salvando, setSalvando] = useState(false);
@@ -236,6 +240,75 @@ async function adicionarTransacao(evento) {
     );
   }
 
+function iniciarEdicao(transacao) {
+  if (salvando || carregandoDados) return;
+
+  setTransacaoEmEdicao(transacao);
+  setDescricaoEdicao(transacao.descricao);
+  setValorEdicao((transacao.valor / 100).toFixed(2).replace(".", ","));
+  setCategoriaEdicao(transacao.categoria);
+  setErroBanco("");
+}
+
+async function salvarEdicao(e) {
+  e.preventDefault();
+
+  if (!transacaoEmEdicao || salvando || carregandoDados) return;
+
+  const novaDescricao = descricaoEdicao.trim();
+  const textoValor = valorEdicao.trim().replace(",", ".");
+  const novoValor = Number(textoValor);
+  const novoValorCentavos = Math.round(novoValor * 100);
+
+  if (
+    !novaDescricao ||
+    !textoValor ||
+    !Number.isFinite(novoValor) ||
+    novoValor <= 0 ||
+    !Number.isSafeInteger(novoValorCentavos) ||
+    !categorias[transacaoEmEdicao.tipo]?.includes(categoriaEdicao)
+  ) {
+    alert("Preencha os campos corretamente.");
+    return;
+  }
+
+  const usuarioId = transacaoEmEdicao.usuario_id;
+
+  if (!usuarioId) {
+    setErroBanco("Não foi possível identificar o usuário da transação.");
+    return;
+  }
+
+  setSalvando(true);
+  setErroBanco("");
+
+  try {
+    const { data, error } = await supabase
+      .from("transacoes")
+      .update({
+        descricao: novaDescricao,
+        valor: novoValorCentavos,
+        categoria: categoriaEdicao,
+      })
+      .eq("id", transacaoEmEdicao.id)
+      .eq("usuario_id", usuarioId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    setTransacoes((anteriores) =>
+      anteriores.map((t) => (t.id === data.id ? data : t))
+    );
+
+    setTransacaoEmEdicao(null);
+  } catch (error) {
+    console.error("Erro ao editar transação:", error);
+    setErroBanco("Não foi possível salvar a edição.");
+  } finally {
+    setSalvando(false);
+  }
+}
  
 async function excluirTransacao(id) {
   if (salvando || carregandoDados) return;
@@ -531,6 +604,16 @@ async function excluirTransacao(id) {
                       {t.tipo === "receita" ? "+" : "-"}
                       {formatarDinheiro(t.valor)}
                     </strong>
+   
+                    <button
+                      type="button"
+                      className="botao-editar"
+                      onClick={() => iniciarEdicao(t)}
+                      aria-label={`Editar ${t.descricao}`}
+                      title="Editar transação"
+                    >
+                     ✏️
+                   </button>
 
                     <button
                       type="button"
@@ -542,6 +625,58 @@ async function excluirTransacao(id) {
                       ×
                     </button>
                   </div>
+
+              {transacaoEmEdicao?.id === t.id && (
+                   <form 
+                     className="formulario-edicao"
+                     onSubmit={salvarEdicao}
+                   >
+                 <label>Descrição</label>
+                 <input
+                    value={descricaoEdicao}
+                    onChange={(e) => setDescricaoEdicao(e.target.value)}
+                    placeholder="Descrição"
+                  />
+
+                <label>Valor (R$)</label>
+                <input
+                   value={valorEdicao}
+                   onChange={(e) => setValorEdicao(e.target.value)}
+                   inputMode="decimal"
+                   placeholder="Ex.: 35,50"
+                 />
+
+                <label>Categoria</label>
+                <select
+                  value={categoriaEdicao}
+                  onChange={(e) => setCategoriaEdicao(e.target.value)}
+                >
+                  {categorias[t.tipo].map((item) => (
+               <option key={item} value={item}>
+                  {item}
+              </option>
+             ))}
+    </select>
+
+             <div className="acoes-edicao">
+             <button
+                type="submit"
+                disabled={salvando || carregandoDados}
+             >
+                {salvando ? "Salvando..." : "Salvar alterações"}
+             </button>
+             <button
+               type="button"
+               onClick={() => setTransacaoEmEdicao(null)}
+          >
+           Cancelar
+        </button>
+      </div>
+    </form>
+)}   
+               
+
+                
                 </li>
               ))}
             </ul>
