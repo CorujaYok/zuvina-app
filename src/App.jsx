@@ -1,5 +1,54 @@
+
 import { useState, useEffect } from "react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import "./App.css";
+
+const categorias = {
+  receita: ["Trabalho", "Freelance", "Presente", "Outros"],
+  despesa: [
+    "Alimentação",
+    "Transporte",
+    "Moradia",
+    "Lazer",
+    "Saúde",
+    "Outros",
+  ],
+};
+
+const cores = [
+  "#9567f5",
+  "#d1a5ff",
+  "#ff9ba6",
+  "#76dbc0",
+  "#f4c36d",
+  "#74a7f7",
+];
+
+function formatarDinheiro(centavos) {
+  return (centavos / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function formatarData(data) {
+  if (!data) return "Data não registrada";
+
+  const convertida = new Date(data);
+
+  if (Number.isNaN(convertida.getTime())) {
+    return "Data não registrada";
+  }
+
+  return convertida.toLocaleDateString("pt-BR");
+}
 
 function App() {
   const [transacoes, setTransacoes] = useState(() => {
@@ -18,13 +67,9 @@ function App() {
   const [categoria, setCategoria] = useState("Alimentação");
   const [erro, setErro] = useState("");
 
-  const categorias = {
-    receita: ["Trabalho", "Freelance", "Presente", "Outros"],
-    despesa: [
-      "Alimentação", "Transporte", "Moradia",
-      "Lazer", "Saúde", "Outros"
-    ],
-  };
+  const [filtroTipo, setFiltroTipo] = useState("todos");
+  const [filtroCategoria, setFiltroCategoria] = useState("todas");
+  const [pesquisa, setPesquisa] = useState("");
 
   useEffect(() => {
     try {
@@ -37,16 +82,77 @@ function App() {
     }
   }, [transacoes]);
 
+  // Saldo de todas as transações
   const saldo = transacoes.reduce((total, t) => {
     return total + (t.tipo === "receita" ? t.valor : -t.valor);
   }, 0);
 
-  function formatarDinheiro(centavos) {
-    return (centavos / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+  // Identifica o mês atual no horário local
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+
+  const transacoesDoMes = transacoes.filter((t) => {
+    if (!t.data) return false;
+
+    const data = new Date(t.data);
+
+    return (
+      !Number.isNaN(data.getTime()) &&
+      data.getMonth() === mesAtual &&
+      data.getFullYear() === anoAtual
+    );
+  });
+
+  const receitasMes = transacoesDoMes
+    .filter((t) => t.tipo === "receita")
+    .reduce((total, t) => total + t.valor, 0);
+
+  const despesasMes = transacoesDoMes
+    .filter((t) => t.tipo === "despesa")
+    .reduce((total, t) => total + t.valor, 0);
+
+  // Agrupa despesas do mês por categoria
+  const totaisPorCategoria = {};
+
+  transacoesDoMes
+    .filter((t) => t.tipo === "despesa")
+    .forEach((t) => {
+      const nome = t.categoria || "Sem categoria";
+
+      totaisPorCategoria[nome] =
+        (totaisPorCategoria[nome] || 0) + t.valor;
     });
-  }
+
+  const dadosGrafico = Object.entries(totaisPorCategoria)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+
+  // Filtra apenas o histórico exibido
+  const transacoesFiltradas = transacoes.filter((t) => {
+    const correspondeTipo =
+      filtroTipo === "todos" || t.tipo === filtroTipo;
+
+    const correspondeCategoria =
+      filtroCategoria === "todas" ||
+      (t.categoria || "Sem categoria") === filtroCategoria;
+
+    const correspondePesquisa = (t.descricao || "")
+      .toLowerCase()
+      .includes(pesquisa.toLowerCase().trim());
+
+    return (
+      correspondeTipo &&
+      correspondeCategoria &&
+      correspondePesquisa
+    );
+  });
+
+  const todasCategorias = [
+    ...new Set(
+      transacoes.map((t) => t.categoria || "Sem categoria")
+    ),
+  ];
 
   function mudarTipo(novoTipo) {
     setTipo(novoTipo);
@@ -74,7 +180,7 @@ function App() {
       !Number.isSafeInteger(centavos) ||
       centavos <= 0
     ) {
-      setErro("O valor deve ser maior que zero.");
+      setErro("Digite um valor positivo válido.");
       return;
     }
 
@@ -98,25 +204,11 @@ function App() {
   }
 
   function excluirTransacao(id) {
-    if (!window.confirm("Excluir esta transação?")) {
-      return;
-    }
+    if (!window.confirm("Excluir esta transação?")) return;
 
     setTransacoes((anteriores) =>
       anteriores.filter((t) => t.id !== id)
     );
-  }
-
-  function formatarData(data) {
-    if (!data) return "Data não registrada";
-
-    const dataConvertida = new Date(data);
-
-    if (Number.isNaN(dataConvertida.getTime())) {
-      return "Data não registrada";
-    }
-
-    return dataConvertida.toLocaleDateString("pt-BR");
   }
 
   return (
@@ -128,9 +220,97 @@ function App() {
 
       <main>
         <section className="saldo">
-          <p>Seu saldo</p>
+          <p>Seu saldo geral</p>
           <h2>{formatarDinheiro(saldo)}</h2>
           <span>Seu dinheiro, mais leve.</span>
+        </section>
+
+        <section className="resumo-mensal">
+          <h3>Resumo do mês</h3>
+
+          <p className="mes-referencia">
+            {hoje.toLocaleDateString("pt-BR", {
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+
+          <div className="cards-resumo">
+            <div className="card-resumo">
+              <span>Receitas</span>
+              <strong className="receita">
+                {formatarDinheiro(receitasMes)}
+              </strong>
+            </div>
+
+            <div className="card-resumo">
+              <span>Despesas</span>
+              <strong className="despesa">
+                {formatarDinheiro(despesasMes)}
+              </strong>
+            </div>
+
+            <div className="card-resumo">
+              <span>Resultado do mês</span>
+              <strong>
+                {formatarDinheiro(receitasMes - despesasMes)}
+              </strong>
+            </div>
+          </div>
+        </section>
+
+        <section className="grafico-container">
+          <h3>Despesas por categoria</h3>
+          <p className="texto-secundario">
+            Distribuição das despesas do mês atual
+          </p>
+
+          {dadosGrafico.length === 0 ? (
+            <p className="texto-secundario">
+              Adicione uma despesa para visualizar o gráfico.
+            </p>
+          ) : (
+            <div className="area-grafico">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={dadosGrafico}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="45%"
+                    innerRadius={55}
+                    outerRadius={90}
+                    paddingAngle={3}
+                  >
+                    {dadosGrafico.map((item, index) => (
+                      <Cell
+                        key={item.name}
+                        fill={cores[index % cores.length]}
+                      />
+                    ))}
+                  </Pie>
+
+                  <Tooltip
+                    formatter={(value) =>
+                      formatarDinheiro(value)
+                    }
+                    contentStyle={{
+                      background: "#251b33",
+                      border: "1px solid #514066",
+                      borderRadius: "10px",
+                      color: "#fff",
+                    }}
+                    itemStyle={{ color: "#fff" }}
+                  />
+
+                  <Legend
+                    wrapperStyle={{ color: "#fff" }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </section>
 
         <section className="formulario">
@@ -202,11 +382,44 @@ function App() {
         <section className="historico">
           <h3>Últimas transações</h3>
 
-          {transacoes.length === 0 ? (
-            <p>Nenhuma transação por enquanto.</p>
+          <div className="filtros">
+            <input
+              aria-label="Pesquisar transações"
+              placeholder="Pesquisar transações..."
+              value={pesquisa}
+              onChange={(e) => setPesquisa(e.target.value)}
+            />
+
+            <select
+              aria-label="Filtrar por tipo"
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+            >
+              <option value="todos">Todas</option>
+              <option value="receita">Receitas</option>
+              <option value="despesa">Despesas</option>
+            </select>
+
+            <select
+              aria-label="Filtrar por categoria"
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
+            >
+              <option value="todas">Todas as categorias</option>
+
+              {todasCategorias.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {transacoesFiltradas.length === 0 ? (
+            <p>Nenhuma transação encontrada.</p>
           ) : (
             <ul className="lista-transacoes">
-              {transacoes.map((t) => (
+              {transacoesFiltradas.map((t) => (
                 <li key={t.id}>
                   <div className="detalhes-transacao">
                     <strong>{t.descricao}</strong>
