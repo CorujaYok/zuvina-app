@@ -113,3 +113,120 @@ button:hover {
 .despesa {
   color: #ff9393;
 }
+
+.formulario {
+  background: #251b33;
+  padding: 24px;
+  border-radius: 18px;
+  margin-top: 28px;
+}
+
+.formulario h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.seletor-tipo {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.seletor-tipo button {
+  background: #3c2b52;
+}
+
+.seletor-tipo button.ativo {
+  background: #8157e8;
+}
+
+.formulario form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.formulario label {
+  display: block;
+  margin-bottom: 6px;
+  color: #d6c9e5;
+  font-size: 14px;
+}
+
+.formulario input,
+.formulario select {
+  width: 100%;
+  background: #171020;
+  color: white;
+  border: 1px solid #514066;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 15px;
+}
+
+.formulario input:focus,
+.formulario select:focus {
+  outline: 2px solid #996eff;
+  outline-offset: 1px;
+}
+
+.campos-linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.botao-adicionar {
+  margin-top: 8px;
+}
+
+.erro {
+  color: #ff9393;
+  margin: 0;
+  font-size: 14px;
+}
+
+.detalhes-transacao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.detalhes-transacao strong {
+  overflow-wrap: anywhere;
+}
+
+.detalhes-transacao small {
+  color: #bcb2c9;
+}
+
+.valor-transacao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.botao-excluir {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: #4b293e;
+  color: #ffb1b1;
+  font-size: 22px;
+}
+
+@media (max-width: 600px) {
+  .campos-linha {
+    grid-template-columns: 1fr;
+  }
+
+  .lista-transacoes li {
+    align-items: flex-start;
+  }
+
+  .valor-transacao {
+    gap: 6px;
+  }
+}
