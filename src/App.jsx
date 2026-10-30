@@ -1,9 +1,35 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
-  const [transacoes, setTransacoes] = useState([]);
+  
+const [transacoes, setTransacoes] = useState(() => {
+  try {
+    const dadosSalvos = localStorage.getItem("zuvina-transacoes");
+
+    if (dadosSalvos) {
+      const dados = JSON.parse(dadosSalvos);
+      return Array.isArray(dados) ? dados : [];
+    }
+
+    return [];
+  } catch (erro) {
+    console.error("Erro ao carregar transações:", erro);
+    return [];
+  }
+});
+
+useEffect(() => {
+  try {
+    localStorage.setItem(
+      "zuvina-transacoes",
+      JSON.stringify(transacoes)
+    );
+  } catch (erro) {
+    console.error("Erro ao salvar transações:", erro);
+  }
+}, [transacoes]);
 
   function adicionarTransacao(tipo) {
     const descricao = prompt("Descrição da transação:");
