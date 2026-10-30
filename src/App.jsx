@@ -56,6 +56,7 @@ const [transacoes, setTransacoes] = useState([]);
 const [carregandoDados, setCarregandoDados] = useState(true);
 const [salvando, setSalvando] = useState(false);
 const [erroBanco, setErroBanco] = useState("");
+const [mostrarValores, setMostrarValores] = useState(true);
 useEffect(() => {
   let ativo = true;
 
@@ -288,9 +289,24 @@ async function excluirTransacao(id) {
          </p>
 )}
         <section className="saldo">
+         <div className="saldo-topo">
           <p>Seu saldo geral</p>
-          <h2>{formatarDinheiro(saldo)}</h2>
-          <span>Seu dinheiro, mais leve.</span>
+ 
+         <button
+            type="button"
+            className="botao-olho"
+            onClick={() => setMostrarValores(!mostrarValores)}
+            aria-label={mostrarValores ? "Ocultar saldo" : "Mostrar saldo"}
+           >
+            {mostrarValores ? "👁️" : "🙈"}
+           </button>
+          </div>
+
+          <h2>
+            {mostrarValores ? formatarDinheiro(saldo) : "R$ ••••••"}
+          </h2>
+
+         <span>Seu dinheiro, mais leve.</span>
         </section>
 
         <section className="resumo-mensal">
@@ -392,7 +408,16 @@ async function excluirTransacao(id) {
             >
               + Receita
             </button>
-
+            
+            <button
+              type="button"
+              onClick={() => setMostrarValores(!mostrarValores)}
+              aria-label={mostrarValores ? "Ocultar valores" : "Mostrar valores"}
+              title={mostrarValores ? "Ocultar valores" : "Mostrar valores"}
+            >
+              {mostrarValores ? "👁️" : "🙈"}
+            </button>
+            
             <button
               type="button"
               className={tipo === "despesa" ? "ativo" : ""}

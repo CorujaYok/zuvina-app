@@ -337,3 +337,21 @@ button:hover {
   opacity: 0.6;
   cursor: wait;
 }
+.saldo-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.botao-olho {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.botao-olho:hover {
+  opacity: 0.7;
+}
