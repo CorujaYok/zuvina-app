@@ -308,8 +308,12 @@ export default function App({ userId }) {
             </div>
           </div>
         </section>
+        
+       {/* [UI-06] Área de duas colunas */}
+       <div className="dashboard-duas-colunas">
 
-        {/* [UI-06] Gráfico de despesas */}
+
+        {/* [UI-06.1] Gráfico de despesas */}
         <section className="grafico-container">
           <h3>Despesas por categoria</h3>
           <p className="texto-secundario">Distribuição das despesas do mês atual</p>
@@ -378,6 +382,8 @@ export default function App({ userId }) {
             </button>
           </form>
         </section>
+
+        </div>
 
         {/* [UI-08] Histórico, pesquisa e filtros */}
         <section className="historico">

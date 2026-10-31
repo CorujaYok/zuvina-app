@@ -506,3 +506,142 @@ button:hover {
   margin: 18px auto 0;
   text-align: center;
 }
+/* ==================================================
+   [ZUVINA-V2-01] LAYOUT PRINCIPAL
+   ================================================== */
+
+/* Aproveita melhor o espaço no computador */
+.zuvina {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 28px 60px;
+}
+
+/* Cabeçalho mais equilibrado */
+.cabecalho {
+  margin-bottom: 32px;
+}
+
+/* Cartões com aparência mais moderna */
+.saldo,
+.resumo-mensal,
+.grafico-container,
+.formulario,
+.historico {
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+/* Saldo principal mais destacado */
+.saldo {
+  padding: 36px;
+  min-height: 190px;
+}
+
+.saldo h2 {
+  font-size: clamp(32px, 4vw, 46px);
+  letter-spacing: -1px;
+}
+
+/* Resumo financeiro */
+.cards-resumo {
+  gap: 18px;
+}
+
+.card-resumo {
+  padding: 22px;
+  border-radius: 14px;
+  transition: transform 0.2s ease;
+}
+
+.card-resumo:hover {
+  transform: translateY(-3px);
+}
+
+.card-resumo strong {
+  font-size: 22px;
+}
+
+/* Espaçamento entre seções */
+.resumo-mensal,
+.grafico-container,
+.formulario {
+  margin-top: 24px;
+}
+
+/* Botões com transições suaves */
+button {
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Melhor adaptação para tablets */
+@media (max-width: 900px) {
+  .zuvina {
+    padding: 28px 20px 48px;
+  }
+
+  .saldo {
+    padding: 28px;
+  }
+}
+
+/* Melhor adaptação para celulares */
+@media (max-width: 600px) {
+  .zuvina {
+    padding: 20px 14px 40px;
+  }
+
+  .cabecalho {
+    margin-bottom: 24px;
+  }
+
+  .saldo {
+    padding: 24px;
+    min-height: auto;
+  }
+
+  .saldo h2 {
+    font-size: 32px;
+  }
+
+  .resumo-mensal,
+  .grafico-container,
+  .formulario,
+  .historico {
+    padding: 20px;
+  }
+
+  .card-resumo {
+    padding: 18px;
+  }
+}
+/* [LAYOUT-01] Gráfico e formulário lado a lado */
+
+.dashboard-duas-colunas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
+  margin-top: 28px;
+}
+
+.dashboard-duas-colunas > .grafico-container,
+.dashboard-duas-colunas > .formulario {
+  margin-top: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.dashboard-duas-colunas .campos-linha {
+  grid-template-columns: 1fr;
+}
+
+/* [LAYOUT-02] Celulares e tablets */
+@media (max-width: 900px) {
+  .dashboard-duas-colunas {
+    grid-template-columns: 1fr;
+  }
+}
