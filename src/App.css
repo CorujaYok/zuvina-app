@@ -489,3 +489,20 @@ button:hover {
     max-width: none;
   }
 }
+/* ==================================================
+   [AUTH-CSS-01] RECUPERAÇÃO DE SENHA
+   ================================================== */
+
+.descricao-recuperacao {
+  text-align: center;
+  color: #c4b5d6;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.link-recuperacao {
+  display: block;
+  margin: 18px auto 0;
+  text-align: center;
+}
