@@ -93,3 +93,51 @@
   background: transparent;
   color: #d1a5ff;
 }
+/* [AUTH-CSS-02] VERIFICAÇÃO DE E-MAIL */
+
+.icone-verificacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 76px;
+  height: 76px;
+  margin: 24px auto;
+
+  background: #38234f;
+  border-radius: 50%;
+
+  font-size: 34px;
+}
+
+.email-verificacao {
+  color: #b99aff;
+  font-weight: bold;
+  text-align: center;
+  overflow-wrap: anywhere;
+  margin: 12px 0 24px;
+}
+/* [AUTH-CSS-02] VERIFICAÇÃO DE E-MAIL */
+
+.icone-verificacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 76px;
+  height: 76px;
+  margin: 24px auto;
+
+  background: #38234f;
+  border-radius: 50%;
+
+  font-size: 34px;
+}
+
+.email-verificacao {
+  color: #b99aff;
+  font-weight: bold;
+  text-align: center;
+  overflow-wrap: anywhere;
+  margin: 12px 0 24px;
+}

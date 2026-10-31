@@ -17,6 +17,7 @@ function Auth({
 
   // Modos disponíveis: login, cadastro, recuperar
   const [modo, setModo] = useState("login");
+  const [emailPendente, setEmailPendente] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mensagem, setMensagem] = useState("");
@@ -85,12 +86,12 @@ function Auth({
         if (error) throw error;
 
         if (!data.session) {
-          setMensagem(
-            "Cadastro solicitado! Confira seu e-mail " +
-            "para confirmar a conta."
-          );
+           setEmailPendente(email.trim());
+           setSenha("");
+           setModo("verificar");
+           setMensagem("");
         } else {
-          setMensagem("Conta criada com sucesso!");
+            setMensagem("Conta criada com sucesso!");
         }
 
         return;
@@ -222,6 +223,48 @@ async function redefinirSenha(evento) {
     setCarregando(false);
   }
 }
+
+// [AUTH-04.5] REENVIAR E-MAIL DE CONFIRMAÇÃO
+async function reenviarConfirmacao() {
+  if (carregando || !emailPendente) return;
+
+  setMensagem("");
+  setCarregando(true);
+
+  try {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: emailPendente,
+      options: {
+        emailRedirectTo: urlAplicativo,
+      },
+    });
+
+    if (error) throw error;
+
+    setMensagem(
+      "Se houver uma confirmação pendente, " +
+      "um novo e-mail será enviado. Confira também o spam."
+    );
+  } catch (erro) {
+    console.error("Erro ao reenviar confirmação:", erro);
+
+    if (
+      erro?.status === 429 ||
+      erro?.code?.includes("rate_limit")
+    ) {
+      setMensagem(
+        "Muitas tentativas. Aguarde alguns minutos antes de reenviar."
+      );
+    } else {
+      setMensagem(
+        "Não foi possível reenviar agora. Tente novamente mais tarde."
+      );
+    }
+  } finally {
+    setCarregando(false);
+  }
+}
   // ----------------------------------------------------
   // [AUTH-05] NAVEGAÇÃO ENTRE MODOS
   // ----------------------------------------------------
@@ -252,12 +295,64 @@ async function redefinirSenha(evento) {
         ? "Criar conta"
         : "Enviar link de recuperação";
 
-  // ----------------------------------------------------
-  // [AUTH-07] INTERFACE
-  // ----------------------------------------------------
- 
- 
- 
+ // ----------------------------------------------------
+ // [AUTH-07] TELA DE VERIFICAÇÃO DE E-MAIL
+ // ----------------------------------------------------
+if (modo === "verificar" && !recuperandoSenha) {
+  return (
+    <div className="pagina-auth">
+      <div className="cartao-auth">
+        <h1 className="logo-auth">zuvina.</h1>
+
+        <p className="slogan-auth">
+          Seu dinheiro, mais leve.
+        </p>
+
+        <div className="icone-verificacao">✉️</div>
+
+        <h2>Verifique seu e-mail</h2>
+
+        <p className="descricao-recuperacao">
+          Enviamos um link de confirmação para:
+        </p>
+
+        <p className="email-verificacao">
+          {emailPendente}
+        </p>
+
+        <p className="descricao-recuperacao">
+          Abra sua caixa de entrada e confirme
+          seu endereço para acessar a Zuvina.
+        </p>
+
+        {mensagem && (
+          <p className="mensagem-auth" role="status">
+            {mensagem}
+          </p>
+        )}
+
+        <button
+          type="button"
+          onClick={reenviarConfirmacao}
+          disabled={carregando}
+        >
+          {carregando
+            ? "Enviando..."
+            : "Reenviar confirmação"}
+        </button>
+
+        <button
+          type="button"
+          className="link-auth link-recuperacao"
+          onClick={() => mudarModo("login")}
+          disabled={carregando}
+        >
+          Voltar para o login
+        </button>
+      </div>
+    </div>
+  );
+}
  
   // ----------------------------------------------------
   // [AUTH-07.1] TELA DE REDEFINIÇÃO DE SENHA
