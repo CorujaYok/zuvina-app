@@ -65,3 +65,89 @@ body {
   margin-top: 80px;
   color: #b99aff;
 }
+
+/* =========================================================
+   ZUVINA — NOVO SHELL COM NAVEGAÇÃO LATERAL
+   Camada visual: não altera consultas nem regras financeiras.
+   ========================================================= */
+.zuvina-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 252px minmax(0, 1fr);
+}
+.zuvina-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 18px 20px;
+  border-right: 1px solid rgba(192,132,252,.12);
+  background: rgba(13,10,22,.96);
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 30px;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.sidebar-brand span { display: grid; gap: 4px; min-width: 0; }
+.sidebar-brand strong { font: 800 1.12rem 'Montserrat',sans-serif; letter-spacing: .19em; }
+.sidebar-brand small { color: var(--text-muted); font-size: .52rem; letter-spacing: .08em; white-space: nowrap; }
+.sidebar-label { padding: 0 12px 12px; color: #716780; font-size: .62rem; font-weight: 800; letter-spacing: .14em; }
+.sidebar-nav { display: grid; gap: 6px; }
+.sidebar-link {
+  display: flex; align-items: center; gap: 13px; min-height: 46px;
+  padding: 0 13px; border: 1px solid transparent; border-radius: 12px;
+  color: #a69bb8; font-size: .86rem; font-weight: 600; text-decoration: none;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.sidebar-link span { width: 20px; color: #9282a8; font-size: 1.15rem; text-align: center; }
+.sidebar-link:hover, .sidebar-link.ativo {
+  color: #f7f2ff; border-color: rgba(171,85,247,.18);
+  background: linear-gradient(90deg,rgba(171,85,247,.17),rgba(171,85,247,.045));
+}
+.sidebar-link.ativo span { color: var(--secondary-lilas); }
+.sidebar-bottom { margin-top: auto; display: grid; gap: 18px; }
+.sidebar-help { display: grid; gap: 7px; padding: 15px; border: 1px solid var(--border-soft); border-radius: 14px; background: linear-gradient(145deg,rgba(171,85,247,.10),rgba(18,16,29,.55)); }
+.sidebar-help-icon { color: var(--secondary-lilas); font-size: 1.1rem; }
+.sidebar-help strong { font-size: .78rem; }
+.sidebar-help small { color: var(--text-muted); font-size: .68rem; line-height: 1.5; }
+.sidebar-version { padding: 0 8px; color: #62596f; font-size: .65rem; }
+.zuvina-main { width: min(100%, 1480px); min-width: 0; padding: 30px clamp(22px,3vw,48px) 56px; margin: 0 auto; }
+.zuvina-main .cabecalho { padding-bottom: 22px; margin-bottom: 26px; }
+.zuvina-main .cabecalho .logotipo-wrapper { display: none; }
+.zuvina-main .cabecalho { justify-content: flex-end; }
+.zuvina-main main { display: grid; gap: 22px; }
+.zuvina-main .saldo { margin-bottom: 0; border-radius: 20px; box-shadow: none; }
+.zuvina-main .resumo-mensal, .zuvina-main .minhas-contas,
+.zuvina-main .grafico-container, .zuvina-main .formulario,
+.zuvina-main .historico, .zuvina-main .historico-movimentacoes,
+.zuvina-main .card-operacao { border-radius: 18px; box-shadow: none; }
+.zuvina-main .cards-resumo { gap: 14px; }
+.zuvina-main .card-resumo { border-radius: 14px; }
+.zuvina-main section[id] { scroll-margin-top: 22px; }
+
+@media (max-width: 900px) {
+  .zuvina-shell { grid-template-columns: 82px minmax(0,1fr); }
+  .zuvina-sidebar { padding: 22px 10px 16px; align-items: center; }
+  .sidebar-brand { padding: 0 0 28px; }
+  .sidebar-brand span, .sidebar-label, .sidebar-link:not(.ativo) { font-size: 0; }
+  .sidebar-brand span, .sidebar-help, .sidebar-version { display: none; }
+  .sidebar-nav { width: 100%; }
+  .sidebar-link { justify-content: center; padding: 0; font-size: 0; }
+  .sidebar-link span { font-size: 1.2rem; }
+  .zuvina-main { padding: 24px 20px 40px; }
+}
+@media (max-width: 620px) {
+  .zuvina-shell { display: block; padding-bottom: 74px; }
+  .zuvina-sidebar { position: fixed; z-index: 50; inset: auto 0 0; width: 100%; height: 66px; padding: 7px 10px; border-top: 1px solid var(--border-soft); border-right: 0; background: rgba(13,10,22,.97); backdrop-filter: blur(16px); }
+  .sidebar-brand, .sidebar-label, .sidebar-bottom { display: none; }
+  .sidebar-nav { display: flex; justify-content: space-around; gap: 4px; }
+  .sidebar-link { flex: 1; min-height: 48px; border-radius: 10px; }
+  .sidebar-link span { font-size: 1.25rem; }
+  .zuvina-main { padding: 18px 14px 30px; }
+  .zuvina-main .cabecalho { padding-bottom: 16px; margin-bottom: 18px; }
+}

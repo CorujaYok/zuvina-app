@@ -1,5 +1,6 @@
 // ============================================================
 // ZUVINA — APP PRINCIPAL (LAYOUT REFINADO NEON)
+//          By: Katar and Coruja
 // ============================================================
 
 import { useCallback, useEffect, useState } from "react";
@@ -415,6 +416,7 @@ export default function App({ userId }) {
   // Estados de Interface e Formulários
   const [salvando, setSalvando] = useState(false);
   const [mostrarValores, setMostrarValores] = useState(true);
+  const [secaoAtiva, setSecaoAtiva] = useState("inicio");
 
   // Nova Transação
   const [tipo, setTipo] = useState("despesa");
@@ -770,14 +772,35 @@ export default function App({ userId }) {
   // ============================================================
 
   return (
-    <div className="zuvina">
+    <div className="zuvina-shell">
       <NotificacaoBanner
         notificacao={notificacao}
         onClose={() => setNotificacao(null)}
       />
 
+      <aside className="zuvina-sidebar" aria-label="Navegação principal">
+        <a className="sidebar-brand" href="#inicio" aria-label="Zuvina - início">
+          <ZuvinaLogo width={42} height={42} />
+          <span><strong>ZUVINA</strong><small>SEU FUTURO, MAIS INTELIGENTE.</small></span>
+        </a>
+        <span className="sidebar-label">MENU PRINCIPAL</span>
+        <nav className="sidebar-nav">
+          <a className={`sidebar-link ${secaoAtiva === "inicio" ? "ativo" : ""}`} href="#inicio" onClick={() => setSecaoAtiva("inicio")}><span>⌂</span>Visão geral</a>
+          <a className={`sidebar-link ${secaoAtiva === "contas" ? "ativo" : ""}`} href="#contas" onClick={() => setSecaoAtiva("contas")}><span>▣</span>Minhas contas</a>
+          <a className={`sidebar-link ${secaoAtiva === "operacoes" ? "ativo" : ""}`} href="#operacoes" onClick={() => setSecaoAtiva("operacoes")}><span>⇄</span>Transferências</a>
+          <a className={`sidebar-link ${secaoAtiva === "analises" ? "ativo" : ""}`} href="#analises" onClick={() => setSecaoAtiva("analises")}><span>◷</span>Análises</a>
+          <a className={`sidebar-link ${secaoAtiva === "movimentacoes" ? "ativo" : ""}`} href="#movimentacoes" onClick={() => setSecaoAtiva("movimentacoes")}><span>↕</span>Movimentações</a>
+          <a className={`sidebar-link ${secaoAtiva === "transacoes" ? "ativo" : ""}`} href="#transacoes" onClick={() => setSecaoAtiva("transacoes")}><span>≡</span>Histórico</a>
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="sidebar-help"><span className="sidebar-help-icon">✦</span><strong>Seu dinheiro, mais leve.</strong><small>Organize sua vida financeira com clareza.</small></div>
+          <span className="sidebar-version">Zuvina · Ambiente seguro</span>
+        </div>
+      </aside>
+
+      <div className="zuvina-main">
       {/* Cabeçalho */}
-      <header className="cabecalho">
+      <header className="cabecalho" id="inicio">
         <div className="logotipo-wrapper">
           <ZuvinaLogo />
           <div>
@@ -859,7 +882,7 @@ export default function App({ userId }) {
         </section>
 
         {/* Minhas Contas e Caixinhas */}
-        <section className="minhas-contas">
+        <section className="minhas-contas" id="contas">
           <div className="resumo-cabecalho">
             <div>
               <h3>Minhas contas</h3>
@@ -912,7 +935,7 @@ export default function App({ userId }) {
         {/* Operações Lado a Lado (Grid) */}
         <div className="operacoes-grid">
           {/* Movimentar Caixinhas */}
-          <section className="card-operacao">
+          <section className="card-operacao" id="operacoes">
             <h3>💜 Movimentar Caixinhas</h3>
             <p className="texto-secundario">Organize o saldo entre as suas contas.</p>
             <form onSubmit={realizarTransferencia}>
@@ -1046,7 +1069,7 @@ export default function App({ userId }) {
         </div>
 
         {/* Dashboard: Gráfico e Nova Transação */}
-        <div className="dashboard-duas-colunas">
+        <div className="dashboard-duas-colunas" id="analises">
           <section className="grafico-container">
             <h3>Despesas por categoria</h3>
             <p className="texto-secundario">Distribuição das despesas do mês atual</p>
@@ -1175,7 +1198,7 @@ export default function App({ userId }) {
         </div>
 
         {/* Histórico de Movimentações entre Contas */}
-        <section className="historico-movimentacoes">
+        <section className="historico-movimentacoes" id="movimentacoes">
           <h3>Movimentações de contas</h3>
           <p className="texto-secundario">
             Acompanhe entradas e saídas das suas Caixinhas e transferências.
@@ -1205,7 +1228,7 @@ export default function App({ userId }) {
         </section>
 
         {/* Histórico Geral */}
-        <section className="historico">
+        <section className="historico" id="transacoes">
           <h3>Últimas transações</h3>
           <div className="filtros">
             <input
@@ -1265,6 +1288,7 @@ export default function App({ userId }) {
           )}
         </section>
       </main>
+      </div>
     </div>
   );
 }
