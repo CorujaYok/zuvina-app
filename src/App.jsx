@@ -1,20 +1,40 @@
 // ============================================================
-// ZUVINA — APP PRINCIPAL
-// Use Ctrl + F e procure [01], [02]... ou [UI-01]...
+// ZUVINA — APP PRINCIPAL (VERSÃO BRAND BOOK NEON)
 // ============================================================
 
-// [01] IMPORTAÇÕES
 import { useEffect, useState } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { supabase } from "./lib/supabaseClient";
 import "./App.css";
+import zuvinaOwl from "./assets/zuvina-owl.png";
 
-// [02] CONFIGURAÇÕES
+// [01] COMPONENTE SVG DA CORUJA NEON (BRAND BOOK)
+
+function ZuvinaLogo({ width = 38, height = 38 }) {
+  return (
+    <img
+      src={zuvinaOwl}
+      alt="Zuvina"
+      width={width}
+      height={height}
+      className="zuvina-logo-image"
+      style={{
+        objectFit: "contain",
+        display: "block",
+        filter: "drop-shadow(0 0 5px rgba(171, 85, 247, 0.65))",
+      }}
+    />
+  );
+}
+
+// [02] CONFIGURAÇÕES & PALETA NEON
 const CATEGORIAS = {
   receita: ["Trabalho", "Freelance", "Presente", "Outros"],
   despesa: ["Alimentação", "Transporte", "Moradia", "Lazer", "Saúde", "Outros"],
 };
-const CORES_GRAFICO = ["#9567f5", "#d1a5ff", "#ff9ba6", "#76dbc0", "#f4c36d", "#74a7f7"];
+
+// Cores alinhadas com a paleta oficial (Roxo Neon, Ciano, Lilás, Rosa/Magenta)
+const CORES_GRAFICO = ["#AB55F7", "#06B6D4", "#C084FC", "#EC4899", "#38BDF8", "#F43F5E"];
 
 // [03] UTILITÁRIOS — Valores, datas e validação
 function formatarDinheiro(centavos) {
@@ -229,6 +249,7 @@ export default function App({ userId }) {
   });
   const receitasMes = transacoesDoMes.filter((t) => t.tipo === "receita").reduce((total, t) => total + t.valor, 0);
   const despesasMes = transacoesDoMes.filter((t) => t.tipo === "despesa").reduce((total, t) => total + t.valor, 0);
+  const resultadoMes = receitasMes - despesasMes;
 
   // [17] GRÁFICO — Despesas agrupadas por categoria
   const totaisPorCategoria = {};
@@ -251,7 +272,7 @@ export default function App({ userId }) {
   // [19] INTERFACE — JSX
   return (
     <div className="zuvina">
-      {/* [UI-01] Notificações de sucesso e erro */}
+      {/* [UI-01] Notificações */}
       {notificacao && (
         <div className={`notificacao notificacao-${notificacao.tipo}`} role="status" aria-live="polite">
           <span>{notificacao.mensagem}</span>
@@ -259,18 +280,26 @@ export default function App({ userId }) {
         </div>
       )}
 
-      {/* [UI-02] Cabeçalho */}
+      {/* [UI-02] Cabeçalho com Logotipo Neon */}
       <header className="cabecalho">
-        <h1>zuvina.</h1>
-        <span>Olá, bem-vindo! 👋</span>
+        <div className="logotipo-wrapper">
+          <ZuvinaLogo />
+          <div>
+            <h1>ZUVINA</h1>
+            <span className="slogan-header">SEU FUTURO, MAIS INTELIGENTE.</span>
+          </div>
+        </div>
+        <div className="usuario-saudacao">
+          <span>Olá, bem-vindo! 👋</span>
+        </div>
       </header>
 
       <main>
-        {/* [UI-03] Avisos de carregamento e falha do banco */}
+        {/* [UI-03] Avisos de carregamento e erro */}
         {carregandoDados && <p className="aviso-banco" role="status">Carregando suas transações...</p>}
         {erroBanco && <p className="erro" role="alert">{erroBanco}</p>}
 
-        {/* [UI-04] Saldo geral e botão de privacidade */}
+        {/* [UI-04] Saldo geral */}
         <section className="saldo">
           <div className="saldo-topo">
             <p>Seu saldo geral</p>
@@ -284,104 +313,136 @@ export default function App({ userId }) {
             </button>
           </div>
           <h2>{mostrarValores ? formatarDinheiro(saldo) : "R$ ••••••"}</h2>
-          <span>Seu dinheiro, mais leve.</span>
+          <span className="saldo-subtitulo">Seu dinheiro, mais leve.</span>
         </section>
 
         {/* [UI-05] Resumo do mês */}
         <section className="resumo-mensal">
-          <h3>Resumo do mês</h3>
-          <p className="mes-referencia">
-            {hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
-          </p>
+          <div className="resumo-cabecalho">
+            <h3>Resumo do mês</h3>
+            <span className="mes-referencia">
+              {hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+            </span>
+          </div>
           <div className="cards-resumo">
-            <div className="card-resumo">
+            <div className="card-resumo card-receita">
               <span>Receitas</span>
-              <strong className="receita">{formatarDinheiro(receitasMes)}</strong>
+              <strong className="receita">{mostrarValores ? formatarDinheiro(receitasMes) : "R$ •••"}</strong>
             </div>
-            <div className="card-resumo">
+            <div className="card-resumo card-despesa">
               <span>Despesas</span>
-              <strong className="despesa">{formatarDinheiro(despesasMes)}</strong>
+              <strong className="despesa">{mostrarValores ? formatarDinheiro(despesasMes) : "R$ •••"}</strong>
             </div>
-            <div className="card-resumo">
+            <div className={`card-resumo ${resultadoMes >= 0 ? "card-resultado-positivo" : "card-resultado-negativo"}`}>
               <span>Resultado do mês</span>
-              <strong>{formatarDinheiro(receitasMes - despesasMes)}</strong>
+              <strong className={resultadoMes >= 0 ? "receita" : "despesa"}>
+                {mostrarValores ? formatarDinheiro(resultadoMes) : "R$ •••"}
+              </strong>
             </div>
           </div>
         </section>
-        
-       {/* [UI-06] Área de duas colunas */}
-       <div className="dashboard-duas-colunas">
 
+        {/* [UI-06] Área de duas colunas */}
+        <div className="dashboard-duas-colunas">
 
-        {/* [UI-06.1] Gráfico de despesas */}
-        <section className="grafico-container">
-          <h3>Despesas por categoria</h3>
-          <p className="texto-secundario">Distribuição das despesas do mês atual</p>
-          {dadosGrafico.length === 0 ? (
-            <p className="texto-secundario">Adicione uma despesa para visualizar o gráfico.</p>
-          ) : (
-            <div className="area-grafico">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={dadosGrafico}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="45%"
-                    innerRadius={55}
-                    outerRadius={90}
-                    paddingAngle={3}
-                  >
-                    {dadosGrafico.map((item, index) => (
-                      <Cell key={item.name} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(valorTooltip) => formatarDinheiro(valorTooltip)}
-                    contentStyle={{
-                      background: "#251b33",
-                      border: "1px solid #514066",
-                      borderRadius: "10px",
-                      color: "#fff",
-                    }}
-                    itemStyle={{ color: "#fff" }}
+          {/* [UI-06.1] Gráfico de despesas */}
+          <section className="grafico-container">
+            <h3>Despesas por categoria</h3>
+            <p className="texto-secundario">Distribuição das despesas do mês atual</p>
+            {dadosGrafico.length === 0 ? (
+              <p className="texto-vazio">Adicione uma despesa para visualizar o gráfico.</p>
+            ) : (
+              <div className="area-grafico">
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={dadosGrafico}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={85}
+                      paddingAngle={4}
+                      stroke="none"
+                    >
+                      {dadosGrafico.map((item, index) => (
+                        <Cell key={item.name} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(valorTooltip) => formatarDinheiro(valorTooltip)}
+                      contentStyle={{
+                        background: "#130F24",
+                        border: "1px solid rgba(171, 85, 247, 0.4)",
+                        borderRadius: "12px",
+                        color: "#F4F0FA",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                      }}
+                      itemStyle={{ color: "#F4F0FA" }}
+                    />
+                    <Legend wrapperStyle={{ color: "#9CA3AF", fontSize: "12px", paddingTop: "10px" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </section>
+
+          {/* [UI-07] Formulário para adicionar transações */}
+          <section className="formulario">
+            <h3>Nova transação</h3>
+            <div className="seletor-tipo">
+              <button
+                type="button"
+                className={tipo === "receita" ? "ativo tipo-receita" : ""}
+                onClick={() => mudarTipo("receita")}
+              >
+                + Receita
+              </button>
+              <button
+                type="button"
+                className={tipo === "despesa" ? "ativo tipo-despesa" : ""}
+                onClick={() => mudarTipo("despesa")}
+              >
+                - Despesa
+              </button>
+            </div>
+            <form onSubmit={adicionarTransacao}>
+              <div className="campo">
+                <label htmlFor="descricao">Descrição</label>
+                <input
+                  id="descricao"
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  placeholder="Ex.: Compras no mercado"
+                />
+              </div>
+              <div className="campos-linha">
+                <div className="campo">
+                  <label htmlFor="valor">Valor (R$)</label>
+                  <input
+                    id="valor"
+                    value={valor}
+                    onChange={(e) => setValor(e.target.value)}
+                    placeholder="Ex.: 35,50"
+                    inputMode="decimal"
                   />
-                  <Legend wrapperStyle={{ color: "#fff" }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </section>
-
-        {/* [UI-07] Formulário para adicionar transações */}
-        <section className="formulario">
-          <h3>Nova transação</h3>
-          <div className="seletor-tipo">
-            <button type="button" className={tipo === "receita" ? "ativo" : ""} onClick={() => mudarTipo("receita")}>+ Receita</button>
-            <button type="button" className={tipo === "despesa" ? "ativo" : ""} onClick={() => mudarTipo("despesa")}>- Despesa</button>
-          </div>
-          <form onSubmit={adicionarTransacao}>
-            <label htmlFor="descricao">Descrição</label>
-            <input id="descricao" value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex.: Compras no mercado" />
-            <div className="campos-linha">
-              <div>
-                <label htmlFor="valor">Valor (R$)</label>
-                <input id="valor" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="Ex.: 35,50" inputMode="decimal" />
+                </div>
+                <div className="campo">
+                  <label htmlFor="categoria">Categoria</label>
+                  <select id="categoria" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+                    {CATEGORIAS[tipo].map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label htmlFor="categoria">Categoria</label>
-                <select id="categoria" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-                  {CATEGORIAS[tipo].map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
-              </div>
-            </div>
-            {erro && <p className="erro" role="alert">{erro}</p>}
-            <button type="submit" className="botao-adicionar" disabled={salvando || carregandoDados}>
-              {salvando ? "Aguarde..." : "+ Adicionar transação"}
-            </button>
-          </form>
-        </section>
+              {erro && <p className="erro" role="alert">{erro}</p>}
+              <button type="submit" className="botao-adicionar" disabled={salvando || carregandoDados}>
+                {salvando ? "Aguarde..." : "+ Adicionar transação"}
+              </button>
+            </form>
+          </section>
 
         </div>
 
@@ -389,7 +450,12 @@ export default function App({ userId }) {
         <section className="historico">
           <h3>Últimas transações</h3>
           <div className="filtros">
-            <input aria-label="Pesquisar transações" placeholder="Pesquisar transações..." value={pesquisa} onChange={(e) => setPesquisa(e.target.value)} />
+            <input
+              aria-label="Pesquisar transações"
+              placeholder="Pesquisar transações..."
+              value={pesquisa}
+              onChange={(e) => setPesquisa(e.target.value)}
+            />
             <select aria-label="Filtrar por tipo" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
               <option value="todos">Todas</option>
               <option value="receita">Receitas</option>
@@ -397,41 +463,91 @@ export default function App({ userId }) {
             </select>
             <select aria-label="Filtrar por categoria" value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)}>
               <option value="todas">Todas as categorias</option>
-              {todasCategorias.map((item) => <option key={item} value={item}>{item}</option>)}
+              {todasCategorias.map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
             </select>
           </div>
+
           {!carregandoDados && !erroBanco && transacoesFiltradas.length === 0 ? (
-            <p>Nenhuma transação encontrada.</p>
+            <p className="texto-vazio">Nenhuma transação encontrada.</p>
           ) : (
             <ul className="lista-transacoes">
               {transacoesFiltradas.map((t) => (
-                <li key={t.id}>
+                <li key={t.id} className="item-transacao">
                   <div className="detalhes-transacao">
                     <strong>{t.descricao}</strong>
                     <small>{t.categoria || "Sem categoria"} · {formatarData(t.data)}</small>
                   </div>
                   <div className="valor-transacao">
-                    <strong className={t.tipo}>
-                      {t.tipo === "receita" ? "+" : "-"}{formatarDinheiro(t.valor)}
+                    <strong className={`valor-tag ${t.tipo}`}>
+                      {t.tipo === "receita" ? "+" : "-"}{mostrarValores ? formatarDinheiro(t.valor) : "R$ •••"}
                     </strong>
-                    <button type="button" className="botao-editar" onClick={() => iniciarEdicao(t)} disabled={salvando || carregandoDados} aria-label={`Editar ${t.descricao}`} title="Editar transação">✏️</button>
-                    <button type="button" className="botao-excluir" onClick={() => excluirTransacao(t.id)} disabled={salvando || carregandoDados} aria-label={`Excluir ${t.descricao}`} title="Excluir transação">×</button>
+                    <button
+                      type="button"
+                      className="botao-icon botao-editar"
+                      onClick={() => iniciarEdicao(t)}
+                      disabled={salvando || carregandoDados}
+                      aria-label={`Editar ${t.descricao}`}
+                      title="Editar transação"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      type="button"
+                      className="botao-icon botao-excluir"
+                      onClick={() => excluirTransacao(t.id)}
+                      disabled={salvando || carregandoDados}
+                      aria-label={`Excluir ${t.descricao}`}
+                      title="Excluir transação"
+                    >
+                      ✕
+                    </button>
                   </div>
 
-                  {/* [UI-09] Formulário de edição dentro do histórico */}
+                  {/* [UI-09] Formulário de edição */}
                   {transacaoEmEdicao?.id === t.id && (
                     <form className="formulario-edicao" onSubmit={salvarEdicao}>
-                      <label htmlFor={`editar-descricao-${t.id}`}>Descrição</label>
-                      <input id={`editar-descricao-${t.id}`} value={descricaoEdicao} onChange={(e) => setDescricaoEdicao(e.target.value)} placeholder="Descrição" />
-                      <label htmlFor={`editar-valor-${t.id}`}>Valor (R$)</label>
-                      <input id={`editar-valor-${t.id}`} value={valorEdicao} onChange={(e) => setValorEdicao(e.target.value)} inputMode="decimal" placeholder="Ex.: 35,50" />
-                      <label htmlFor={`editar-categoria-${t.id}`}>Categoria</label>
-                      <select id={`editar-categoria-${t.id}`} value={categoriaEdicao} onChange={(e) => setCategoriaEdicao(e.target.value)}>
-                        {CATEGORIAS[t.tipo].map((item) => <option key={item} value={item}>{item}</option>)}
-                      </select>
+                      <div className="campo">
+                        <label htmlFor={`editar-descricao-${t.id}`}>Descrição</label>
+                        <input
+                          id={`editar-descricao-${t.id}`}
+                          value={descricaoEdicao}
+                          onChange={(e) => setDescricaoEdicao(e.target.value)}
+                          placeholder="Descrição"
+                        />
+                      </div>
+                      <div className="campos-linha">
+                        <div className="campo">
+                          <label htmlFor={`editar-valor-${t.id}`}>Valor (R$)</label>
+                          <input
+                            id={`editar-valor-${t.id}`}
+                            value={valorEdicao}
+                            onChange={(e) => setValorEdicao(e.target.value)}
+                            inputMode="decimal"
+                            placeholder="Ex.: 35,50"
+                          />
+                        </div>
+                        <div className="campo">
+                          <label htmlFor={`editar-categoria-${t.id}`}>Categoria</label>
+                          <select
+                            id={`editar-categoria-${t.id}`}
+                            value={categoriaEdicao}
+                            onChange={(e) => setCategoriaEdicao(e.target.value)}
+                          >
+                            {CATEGORIAS[t.tipo].map((item) => (
+                              <option key={item} value={item}>{item}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
                       <div className="acoes-edicao">
-                        <button type="submit" disabled={salvando || carregandoDados}>{salvando ? "Salvando..." : "Salvar alterações"}</button>
-                        <button type="button" disabled={salvando} onClick={() => setTransacaoEmEdicao(null)}>Cancelar</button>
+                        <button type="submit" className="botao-salvar" disabled={salvando || carregandoDados}>
+                          {salvando ? "Salvando..." : "Salvar alterações"}
+                        </button>
+                        <button type="button" className="botao-cancelar" disabled={salvando} onClick={() => setTransacaoEmEdicao(null)}>
+                          Cancelar
+                        </button>
                       </div>
                     </form>
                   )}

@@ -1,3 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Cores Principais - Paleta Oficial Zuvina */
+  --bg-deep-black: #0b0814;       /* Fundo principal (Preto Profundo) */
+  --bg-card: #130f24;             /* Fundo dos cartões e painéis */
+  --bg-card-hover: #1c1635;       /* Hover nos cartões e itens de lista */
+  --bg-input: #17122c;            /* Fundo de inputs e seletores */
+  
+  --primary-neon: #ab55f7;        /* Roxo Neon principal */
+  --secondary-lilas: #c084fc;     /* Lilás Elétrico */
+  
+  --text-primary: #f4f0fa;        /* Branco Gelo (Títulos e saldos) */
+  --text-secondary: #9ca3af;      /* Cinza Lunar (Legendas e rótulos) */
+  
+  /* Indicadores Financeiros (Neon High Contrast) */
+  --accent-income: #06b6d4;       /* Receitas (Ciano Néon) */
+  --accent-expense: #ec4899;      /* Despesas (Rosa/Magenta Néon) */
+
+  /* Efeitos e Glow Neon */
+  --glow-primary: 0px 0px 20px rgba(171, 85, 247, 0.45);
+  --glow-button: 0px 4px 15px rgba(171, 85, 247, 0.35);
+  --glow-card: 0px 0px 15px rgba(171, 85, 247, 0.1);
+  --border-neon: 1px solid rgba(171, 85, 247, 0.25);
+  --border-neon-active: 1px solid rgba(171, 85, 247, 0.8);
+
+  /* Tipografia */
+  --font-family-main: 'Montserrat', sans-serif;
+}
+
+body {
+  background-color: var(--bg-deep-black);
+  color: var(--text-primary);
+  font-family: var(--font-family-main);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
 .barra-sessao {
   max-width: 900px;
   margin: 16px auto 0;

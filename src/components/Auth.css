@@ -1,143 +1,242 @@
+/* ============================================================
+   ESTILOS DE AUTENTICAÇÃO — ZUVINA NEON BRAND BOOK
+   ============================================================ */
+
+/* CONTAINER DA PÁGINA COMPLETA */
 .pagina-auth {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #171020;
+  background: #0b0814; /* Fundo Preto Profundo */
   padding: 24px;
 }
 
+/* CARTÃO CENTRAL (GLASSMORPHISM NEON) */
 .cartao-auth {
   width: 100%;
   max-width: 420px;
-  background: #251b33;
-  padding: 36px;
-  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(19, 15, 36, 0.95) 0%, rgba(13, 11, 24, 0.98) 100%);
+  border: 1px solid rgba(171, 85, 247, 0.3);
+  border-radius: 24px;
+  padding: 36px 32px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(171, 85, 247, 0.05);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* CABEÇALHO E LOGOTIPO */
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.auth-owl-svg {
+  filter: drop-shadow(0 0 12px rgba(171, 85, 247, 0.75));
+  margin-bottom: 8px;
 }
 
 .logo-auth {
-  color: #b99aff;
+  font-family: 'Montserrat', sans-serif;
+  color: #f4f0fa;
   text-align: center;
-  font-size: 40px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 4px;
   margin: 0;
+  text-shadow: 0 0 14px rgba(171, 85, 247, 0.6);
+  line-height: 1;
 }
 
 .slogan-auth {
   text-align: center;
-  color: #bcb2c9;
-  margin-bottom: 36px;
+  color: #9ca3af;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  font-weight: 600;
+  margin-top: 6px;
+  margin-bottom: 0;
+  text-transform: uppercase;
 }
 
 .cartao-auth h2 {
+  color: #f4f0fa;
   text-align: center;
-  margin-bottom: 26px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 22px;
 }
 
+/* FORMULÁRIOS E CAMPOS */
 .cartao-auth form {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+}
+
+.campo-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
 }
 
 .cartao-auth label {
-  color: #d6c9e5;
-  font-size: 14px;
+  color: #9ca3af;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .cartao-auth input {
   width: 100%;
-  background: #171020;
-  color: white;
-  border: 1px solid #514066;
-  border-radius: 10px;
+  background: #17122c;
+  color: #f4f0fa;
+  border: 1px solid rgba(171, 85, 247, 0.25);
+  border-radius: 12px;
   padding: 14px;
-  font-size: 15px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .cartao-auth input:focus {
-  outline: 2px solid #996eff;
+  border-color: #ab55f7;
+  box-shadow: 0 0 12px rgba(171, 85, 247, 0.4);
 }
 
-.cartao-auth form button {
-  margin-top: 12px;
-  background: #8157e8;
+/* BOTÃO PRINCIPAL DE AÇÃO */
+.btn-principal {
+  width: 100%;
+  margin-top: 10px;
+  background: linear-gradient(135deg, #ab55f7 0%, #c084fc 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(171, 85, 247, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-principal:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(171, 85, 247, 0.6);
 }
 
 .cartao-auth button:disabled {
-  opacity: 0.6;
-  cursor: wait;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
+/* MENSAGENS DE NOTIFICAÇÃO E ERRO */
 .mensagem-auth {
-  color: #d1a5ff;
-  font-size: 14px;
+  background: rgba(171, 85, 247, 0.15);
+  border: 1px solid rgba(171, 85, 247, 0.4);
+  color: #f4f0fa;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 8px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* NAVEGAÇÃO E LINKS SECUNDÁRIOS */
+.rodape-auth {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .trocar-auth {
   text-align: center;
-  color: #bcb2c9;
-  margin-top: 24px;
-  margin-bottom: 6px;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin-top: 16px;
+  margin-bottom: 4px;
 }
 
 .link-auth {
   display: block;
-  margin: 0 auto;
+  margin: 12px auto 0;
   background: transparent;
-  color: #b99aff;
-  padding: 8px;
-  width: auto;
+  border: none;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  padding: 6px;
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
 .link-auth:hover {
   background: transparent;
-  color: #d1a5ff;
+  color: #c084fc;
 }
-/* [AUTH-CSS-02] VERIFICAÇÃO DE E-MAIL */
 
+.link-recuperacao {
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+.link-auth-destaque {
+  background: transparent;
+  border: none;
+  color: #ab55f7;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.link-auth-destaque:hover {
+  text-decoration: underline;
+  color: #c084fc;
+}
+
+/* TELA DE VERIFICAÇÃO DE E-MAIL & RECUPERAÇÃO */
 .icone-verificacao {
   display: flex;
   align-items: center;
   justify-content: center;
-
   width: 76px;
   height: 76px;
-  margin: 24px auto;
-
-  background: #38234f;
+  margin: 16px auto 20px;
+  background: rgba(171, 85, 247, 0.15);
+  border: 1px solid rgba(171, 85, 247, 0.4);
   border-radius: 50%;
-
   font-size: 34px;
+  box-shadow: 0 0 20px rgba(171, 85, 247, 0.2);
+}
+
+.descricao-recuperacao {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  text-align: center;
+  margin-bottom: 12px;
+  line-height: 1.4;
 }
 
 .email-verificacao {
-  color: #b99aff;
-  font-weight: bold;
+  color: #ab55f7;
+  font-weight: 700;
+  font-size: 0.95rem;
   text-align: center;
   overflow-wrap: anywhere;
-  margin: 12px 0 24px;
-}
-/* [AUTH-CSS-02] VERIFICAÇÃO DE E-MAIL */
-
-.icone-verificacao {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 76px;
-  height: 76px;
-  margin: 24px auto;
-
-  background: #38234f;
-  border-radius: 50%;
-
-  font-size: 34px;
-}
-
-.email-verificacao {
-  color: #b99aff;
-  font-weight: bold;
-  text-align: center;
-  overflow-wrap: anywhere;
-  margin: 12px 0 24px;
+  margin: 8px 0 18px;
+  text-shadow: 0 0 8px rgba(171, 85, 247, 0.4);
 }
