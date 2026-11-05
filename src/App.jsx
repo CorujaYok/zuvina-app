@@ -1,5 +1,5 @@
 // ============================================================
-// ZUVINA — APP PRINCIPAL (VERSÃO BRAND BOOK NEON)
+// ZUVINA — APP PRINCIPAL (LAYOUT REFINADO NEON)
 // ============================================================
 
 import { useCallback, useEffect, useState } from "react";
@@ -46,7 +46,7 @@ function converterValorEmCentavos(texto) {
 }
 
 // ============================================================
-// [03] COMPONENTES DE INTERFACE SECUNDÁRIOS
+// [03] COMPONENTES SECUNDÁRIOS DE INTERFACE
 // ============================================================
 
 function ZuvinaLogo({ width = 38, height = 38 }) {
@@ -82,7 +82,17 @@ function NotificacaoBanner({ notificacao, onClose }) {
   );
 }
 
-function CardConta({ conta, mostrarValores }) {
+function CardConta({ conta, mostrarValores, onCopiarNotificacao }) {
+  const codigoFormatado = conta.codigo
+    ? `${conta.codigo.slice(0, 8)}...${conta.codigo.slice(-6)}`
+    : "";
+
+  function copiarCodigo() {
+    if (!conta.codigo) return;
+    navigator.clipboard.writeText(conta.codigo);
+    onCopiarNotificacao("Código da conta copiado!");
+  }
+
   return (
     <article className="card-conta">
       <div>
@@ -90,7 +100,17 @@ function CardConta({ conta, mostrarValores }) {
           {conta.tipo === "principal" ? "🏦 Conta principal" : "💜 Conta de reserva"}
         </span>
         <h4>{conta.nome}</h4>
-        <small>Código: {conta.codigo}</small>
+        <div className="codigo-conta-badge" title={conta.codigo}>
+          <span>Código: {codigoFormatado}</span>
+          <button
+            type="button"
+            className="btn-copiar"
+            onClick={copiarCodigo}
+            title="Copiar Código"
+          >
+            📋
+          </button>
+        </div>
       </div>
       <strong>
         {mostrarValores ? formatarDinheiro(conta.saldo_centavos) : "R$ ••••••"}
@@ -302,9 +322,7 @@ function useFinanceiro(userId) {
     try {
       const { data, error } = await supabase
         .from("movimentacoes")
-        .select(
-          "id, conta_id, transferencia_id, tipo, valor_centavos, descricao, criada_em"
-        )
+        .select("id, conta_id, transferencia_id, tipo, valor_centavos, descricao, criada_em")
         .eq("usuario_id", userId)
         .order("criada_em", { ascending: false });
 
@@ -425,7 +443,6 @@ export default function App({ userId }) {
   const [processandoConta, setProcessandoConta] = useState(false);
   const [codigoDestinoExterno, setCodigoDestinoExterno] = useState("");
 
-  // Atualiza a conta de origem padrão assim que as contas são carregadas
   useEffect(() => {
     if (contas.length) {
       const principal = contas.find((conta) => conta.tipo === "principal");
@@ -434,7 +451,7 @@ export default function App({ userId }) {
   }, [contas]);
 
   // ============================================================
-  // [06] AÇÕES DO SUPABASE (AÇÕES DO USUÁRIO)
+  // [06] AÇÕES DO USUÁRIO
   // ============================================================
 
   async function adicionarTransacao(evento) {
@@ -537,7 +554,7 @@ export default function App({ userId }) {
       setDescricaoTransferencia("");
       await carregarContas();
       await carregarMovimentacoes();
-      mostrarNotificacao("Movimentação entre caixinhas realizada!");
+      mostrarNotificacao("Movimentação realizada!");
     } catch (error) {
       console.error("Erro ao movimentar caixinhas:", error);
       mostrarNotificacao(
@@ -587,7 +604,7 @@ export default function App({ userId }) {
 
       await carregarContas();
       await carregarMovimentacoes();
-      mostrarNotificacao("Transferência enviada com sucesso!");
+      mostrarNotificacao("Transferência enviada!");
     } catch (error) {
       console.error("Erro na transferência externa:", error);
       mostrarNotificacao(
@@ -692,7 +709,7 @@ export default function App({ userId }) {
   }
 
   // ============================================================
-  // [07] CÁLCULOS E FILTROS DE DADOS
+  // [07] CÁLCULOS E FILTROS
   // ============================================================
 
   const saldo = contas.reduce(
@@ -749,7 +766,7 @@ export default function App({ userId }) {
   ];
 
   // ============================================================
-  // [08] RENDERIZAÇÃO DE INTERFACE
+  // [08] RENDERIZAÇÃO DA INTERFACE
   // ============================================================
 
   return (
@@ -776,7 +793,7 @@ export default function App({ userId }) {
       <main>
         {carregandoDados && (
           <p className="aviso-banco" role="status">
-            Carregando suas transações...
+            Carregando dados...
           </p>
         )}
         {erroBanco && (
@@ -784,195 +801,6 @@ export default function App({ userId }) {
             {erroBanco}
           </p>
         )}
-
-        {/* Gestão de Contas */}
-        <section className="minhas-contas">
-          <div className="resumo-cabecalho">
-            <div>
-              <h3>Minhas contas</h3>
-              <p className="texto-secundario">
-                Organize seu dinheiro em diferentes espaços.
-              </p>
-            </div>
-            <span>🦉</span>
-          </div>
-
-          {carregandoContas ? (
-            <p className="aviso-banco">Carregando contas...</p>
-          ) : (
-            <div className="lista-contas">
-              {contas.map((conta) => (
-                <CardConta
-                  key={conta.id}
-                  conta={conta}
-                  mostrarValores={mostrarValores}
-                />
-              ))}
-            </div>
-          )}
-
-          <form className="formulario-conta" onSubmit={criarContaReserva}>
-            <h4>Criar conta de reserva</h4>
-            <div className="campo">
-              <label htmlFor="nome-conta-reserva">Nome da conta</label>
-              <input
-                id="nome-conta-reserva"
-                value={nomeNovaConta}
-                onChange={(e) => setNomeNovaConta(e.target.value)}
-                placeholder="Ex.: Viagens, Emergência..."
-                maxLength={40}
-                minLength={2}
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="botao-adicionar"
-              disabled={processandoConta || carregandoContas}
-            >
-              {processandoConta ? "Criando..." : "+ Criar conta"}
-            </button>
-          </form>
-        </section>
-
-        {/* Movimentar Caixinhas */}
-        <section className="transferencias">
-          <h3>💜 Movimentar Caixinhas</h3>
-          <p className="texto-secundario">
-            Organize seu dinheiro entre sua Conta Principal e suas Caixinhas.
-          </p>
-          <form onSubmit={realizarTransferencia}>
-            <div className="campo">
-              <label htmlFor="conta-origem">De onde sai?</label>
-              <select
-                id="conta-origem"
-                value={contaOrigem}
-                onChange={(e) => setContaOrigem(e.target.value)}
-                required
-              >
-                <option value="">Selecione a origem</option>
-                {contas.map((conta) => (
-                  <option key={conta.id} value={conta.id}>
-                    {conta.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="campo">
-              <label htmlFor="conta-destino">Para onde vai?</label>
-              <select
-                id="conta-destino"
-                value={contaDestino}
-                onChange={(e) => setContaDestino(e.target.value)}
-                required
-              >
-                <option value="">Selecione o destino</option>
-                {contas
-                  .filter((conta) => conta.id !== contaOrigem)
-                  .map((conta) => (
-                    <option key={conta.id} value={conta.id}>
-                      {conta.nome}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="campo">
-              <label htmlFor="valor-transferencia-caixinha">Valor (R$)</label>
-              <input
-                id="valor-transferencia-caixinha"
-                value={valorTransferencia}
-                onChange={(e) => setValorTransferencia(e.target.value)}
-                placeholder="Ex.: 100,00"
-                inputMode="decimal"
-                required
-              />
-            </div>
-
-            <div className="campo">
-              <label htmlFor="descricao-transferencia-caixinha">
-                Descrição (opcional)
-              </label>
-              <input
-                id="descricao-transferencia-caixinha"
-                value={descricaoTransferencia}
-                onChange={(e) => setDescricaoTransferencia(e.target.value)}
-                placeholder="Ex.: Reserva para viagem"
-                maxLength={120}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="botao-adicionar"
-              disabled={processandoConta || carregandoContas || contas.length < 2}
-            >
-              {processandoConta ? "Movimentando..." : "Movimentar dinheiro"}
-            </button>
-          </form>
-        </section>
-
-        {/* Transferência Externa */}
-        <section className="transferencias">
-          <h3>🚀 Transferir para outra pessoa</h3>
-          <p className="texto-secundario">
-            Envie dinheiro para outro usuário Zuvina usando o código da Conta Principal.
-          </p>
-          <form onSubmit={realizarTransferenciaExterna}>
-            <div className="campo">
-              <label htmlFor="codigo-destino">Código da conta de destino</label>
-              <input
-                id="codigo-destino"
-                value={codigoDestinoExterno}
-                onChange={(e) => setCodigoDestinoExterno(e.target.value)}
-                placeholder="Cole o código do destinatário"
-                required
-              />
-            </div>
-
-            <div className="campo">
-              <label htmlFor="valor-transferencia-externa">Valor (R$)</label>
-              <input
-                id="valor-transferencia-externa"
-                value={valorTransferencia}
-                onChange={(e) => setValorTransferencia(e.target.value)}
-                placeholder="Ex.: 50,00"
-                inputMode="decimal"
-                required
-              />
-            </div>
-
-            <div className="campo">
-              <label htmlFor="descricao-transferencia-externa">
-                Descrição (opcional)
-              </label>
-              <input
-                id="descricao-transferencia-externa"
-                value={descricaoTransferencia}
-                onChange={(e) => setDescricaoTransferencia(e.target.value)}
-                placeholder="Ex.: Pagamento"
-                maxLength={120}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="botao-adicionar"
-              disabled={
-                processandoConta ||
-                carregandoContas ||
-                !contas.some((c) => c.tipo === "principal")
-              }
-            >
-              {processandoConta ? "Enviando..." : "Enviar transferência"}
-            </button>
-
-            <p className="texto-vazio">
-              As transferências externas são realizadas pela sua Conta Principal.
-            </p>
-          </form>
-        </section>
 
         {/* Saldo Geral */}
         <section className="saldo">
@@ -1029,6 +857,193 @@ export default function App({ userId }) {
             </div>
           </div>
         </section>
+
+        {/* Minhas Contas e Caixinhas */}
+        <section className="minhas-contas">
+          <div className="resumo-cabecalho">
+            <div>
+              <h3>Minhas contas</h3>
+              <p className="texto-secundario">
+                Organize seu dinheiro em diferentes espaços.
+              </p>
+            </div>
+            <span>🦉</span>
+          </div>
+
+          {carregandoContas ? (
+            <p className="aviso-banco">Carregando contas...</p>
+          ) : (
+            <div className="lista-contas">
+              {contas.map((conta) => (
+                <CardConta
+                  key={conta.id}
+                  conta={conta}
+                  mostrarValores={mostrarValores}
+                  onCopiarNotificacao={mostrarNotificacao}
+                />
+              ))}
+            </div>
+          )}
+
+          <form className="formulario-conta" onSubmit={criarContaReserva}>
+            <h4>Criar conta de reserva</h4>
+            <div className="campo">
+              <label htmlFor="nome-conta-reserva">Nome da conta</label>
+              <input
+                id="nome-conta-reserva"
+                value={nomeNovaConta}
+                onChange={(e) => setNomeNovaConta(e.target.value)}
+                placeholder="Ex.: Viagens, Emergência..."
+                maxLength={40}
+                minLength={2}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="botao-adicionar"
+              disabled={processandoConta || carregandoContas}
+            >
+              {processandoConta ? "Criando..." : "+ Criar conta"}
+            </button>
+          </form>
+        </section>
+
+        {/* Operações Lado a Lado (Grid) */}
+        <div className="operacoes-grid">
+          {/* Movimentar Caixinhas */}
+          <section className="card-operacao">
+            <h3>💜 Movimentar Caixinhas</h3>
+            <p className="texto-secundario">Organize o saldo entre as suas contas.</p>
+            <form onSubmit={realizarTransferencia}>
+              <div className="campos-linha">
+                <div className="campo">
+                  <label htmlFor="conta-origem">Origem</label>
+                  <select
+                    id="conta-origem"
+                    value={contaOrigem}
+                    onChange={(e) => setContaOrigem(e.target.value)}
+                    required
+                  >
+                    <option value="">Selecione a origem</option>
+                    {contas.map((conta) => (
+                      <option key={conta.id} value={conta.id}>
+                        {conta.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="conta-destino">Destino</label>
+                  <select
+                    id="conta-destino"
+                    value={contaDestino}
+                    onChange={(e) => setContaDestino(e.target.value)}
+                    required
+                  >
+                    <option value="">Selecione o destino</option>
+                    {contas
+                      .filter((conta) => conta.id !== contaOrigem)
+                      .map((conta) => (
+                        <option key={conta.id} value={conta.id}>
+                          {conta.nome}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="campos-linha">
+                <div className="campo">
+                  <label htmlFor="valor-transferencia-caixinha">Valor (R$)</label>
+                  <input
+                    id="valor-transferencia-caixinha"
+                    value={valorTransferencia}
+                    onChange={(e) => setValorTransferencia(e.target.value)}
+                    placeholder="Ex.: 100,00"
+                    inputMode="decimal"
+                    required
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="descricao-transferencia-caixinha">Descrição</label>
+                  <input
+                    id="descricao-transferencia-caixinha"
+                    value={descricaoTransferencia}
+                    onChange={(e) => setDescricaoTransferencia(e.target.value)}
+                    placeholder="Opcional"
+                    maxLength={120}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="botao-adicionar"
+                disabled={processandoConta || carregandoContas || contas.length < 2}
+              >
+                {processandoConta ? "Movimentando..." : "Movimentar dinheiro"}
+              </button>
+            </form>
+          </section>
+
+          {/* Transferência Externa */}
+          <section className="card-operacao">
+            <h3>🚀 Transferir para Outra Pessoa</h3>
+            <p className="texto-secundario">Envie para outro usuário Zuvina.</p>
+            <form onSubmit={realizarTransferenciaExterna}>
+              <div className="campo">
+                <label htmlFor="codigo-destino">Código do destinatário</label>
+                <input
+                  id="codigo-destino"
+                  value={codigoDestinoExterno}
+                  onChange={(e) => setCodigoDestinoExterno(e.target.value)}
+                  placeholder="Cole o código da conta destino"
+                  required
+                />
+              </div>
+
+              <div className="campos-linha">
+                <div className="campo">
+                  <label htmlFor="valor-transferencia-externa">Valor (R$)</label>
+                  <input
+                    id="valor-transferencia-externa"
+                    value={valorTransferencia}
+                    onChange={(e) => setValorTransferencia(e.target.value)}
+                    placeholder="Ex.: 50,00"
+                    inputMode="decimal"
+                    required
+                  />
+                </div>
+
+                <div className="campo">
+                  <label htmlFor="descricao-transferencia-externa">Descrição</label>
+                  <input
+                    id="descricao-transferencia-externa"
+                    value={descricaoTransferencia}
+                    onChange={(e) => setDescricaoTransferencia(e.target.value)}
+                    placeholder="Opcional"
+                    maxLength={120}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="botao-adicionar"
+                disabled={
+                  processandoConta ||
+                  carregandoContas ||
+                  !contas.some((c) => c.tipo === "principal")
+                }
+              >
+                {processandoConta ? "Enviando..." : "Enviar transferência"}
+              </button>
+            </form>
+          </section>
+        </div>
 
         {/* Dashboard: Gráfico e Nova Transação */}
         <div className="dashboard-duas-colunas">
@@ -1189,7 +1204,7 @@ export default function App({ userId }) {
           )}
         </section>
 
-        {/* Histórico e Filtro de Transações Gerais */}
+        {/* Histórico Geral */}
         <section className="historico">
           <h3>Últimas transações</h3>
           <div className="filtros">

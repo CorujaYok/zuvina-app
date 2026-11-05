@@ -1,9 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap');
 
 /* =========================================================
-   ZUVINA — DESIGN SYSTEM
-   Substitua o App.css atual por este arquivo.
-   Mantém os seletores usados pelo App.jsx enviado.
+   ZUVINA — DESIGN SYSTEM (REFATORADO)
    ========================================================= */
 
 :root {
@@ -263,7 +261,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .resumo-mensal h3,
 .grafico-container h3,
 .formulario h3,
-.historico h3 {
+.historico h3,
+.minhas-contas h3,
+.historico-movimentacoes h3,
+.card-operacao h3 {
   color: var(--text-primary);
   font-size: 1.05rem;
   font-weight: 700;
@@ -320,6 +321,101 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .card-resultado-positivo { border-bottom: 2px solid rgba(56, 201, 217, .7); }
 .card-resultado-negativo { border-bottom: 2px solid rgba(240, 113, 178, .7); }
 
+/* OPERAÇÕES LADO A LADO (GRID) */
+.operacoes-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.card-operacao {
+  padding: 23px;
+  border: 1px solid var(--border-soft);
+  border-radius: 19px;
+  background: linear-gradient(155deg, rgba(20, 17, 33, .98), rgba(15, 12, 24, .98));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .16);
+}
+
+/* MINHAS CONTAS */
+.minhas-contas, .historico-movimentacoes {
+  padding: 23px;
+  border: 1px solid var(--border-soft);
+  border-radius: 19px;
+  background: linear-gradient(155deg, rgba(20, 17, 33, .98), rgba(15, 12, 24, .98));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .16);
+  margin-bottom: 24px;
+}
+
+.lista-contas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.card-conta {
+  background: rgba(171, 85, 247, 0.06);
+  border: 1px solid rgba(171, 85, 247, 0.2);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.card-conta h4 {
+  margin: 6px 0 2px;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.card-conta strong {
+  color: var(--secondary-lilas);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+/* BADGE DE CÓDIGO DA CONTA */
+.codigo-conta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(192, 132, 252, 0.15);
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.btn-copiar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.btn-copiar:hover {
+  opacity: 1;
+}
+
+.formulario-conta {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 18px;
+  margin-top: 18px;
+}
+
+.formulario-conta h4 {
+  margin-bottom: 14px;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
 /* GRÁFICO E FORMULÁRIO */
 .dashboard-duas-colunas {
   display: grid;
@@ -355,7 +451,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 
 .texto-vazio {
-  padding: 42px 12px;
+  padding: 30px 12px;
   color: var(--text-muted);
   font-size: .86rem;
   line-height: 1.6;
@@ -555,7 +651,7 @@ select option {
   place-items: center;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 99px;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
@@ -623,9 +719,14 @@ select option {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (max-width: 880px) {
+  .operacoes-grid, .dashboard-duas-colunas {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 820px) {
   .zuvina { width: min(100% - 32px, 680px); padding-top: 22px; }
-  .dashboard-duas-colunas { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -635,7 +736,10 @@ select option {
   .cards-resumo { grid-template-columns: 1fr; gap: 10px; }
   .card-resumo { padding: 16px 17px; }
   .resumo-cabecalho { align-items: flex-start; flex-direction: column; gap: 5px; }
-  .grafico-container, .formulario, .historico { padding: 18px; border-radius: 16px; }
+  .grafico-container, .formulario, .historico, .card-operacao, .minhas-contas, .historico-movimentacoes {
+    padding: 18px;
+    border-radius: 16px;
+  }
   .filtros { grid-template-columns: 1fr; }
   .campos-linha { grid-template-columns: 1fr 1fr; gap: 9px; }
   .saldo { padding: 23px 20px; border-radius: 18px; }
@@ -646,86 +750,4 @@ select option {
   .campos-linha { grid-template-columns: 1fr; }
   .slogan-header { font-size: .54rem; letter-spacing: .12em; }
   .cabecalho h1 { font-size: 1.35rem; }
-}
-
-/* ============================================================
-   ZUVINA — MINHAS CONTAS E TRANSFERÊNCIAS
-============================================================ */
-
-.minhas-contas,
-.transferencias {
-  background: #130F24;
-  border: 1px solid rgba(171, 85, 247, 0.22);
-  border-radius: 18px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
-}
-
-.lista-contas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  margin: 20px 0;
-}
-
-.card-conta {
-  background: rgba(171, 85, 247, 0.07);
-  border: 1px solid rgba(171, 85, 247, 0.25);
-  border-radius: 14px;
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.card-conta h4 {
-  margin: 8px 0;
-  color: #F4F0FA;
-}
-
-.card-conta strong {
-  color: #C084FC;
-  font-size: 1.25rem;
-}
-
-.card-conta small {
-  color: #9CA3AF;
-  overflow-wrap: anywhere;
-}
-
-.formulario-conta {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 20px;
-  margin-top: 20px;
-}
-
-.formulario-conta h4 {
-  margin-bottom: 16px;
-}
-
-.transferencias form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.transferencias .botao-adicionar {
-  grid-column: 1 / -1;
-}
-
-@media (max-width: 650px) {
-  .minhas-contas,
-  .transferencias {
-    padding: 18px;
-  }
-
-  .transferencias form {
-    grid-template-columns: 1fr;
-  }
-
-  .transferencias .botao-adicionar {
-    grid-column: auto;
-  }
 }
