@@ -27,7 +27,7 @@ export default function CardConta({
         <span className="texto-secundario">
           {conta.tipo === "principal"
             ? "🏦 Conta principal"
-            : "💜 Conta de reserva"}
+            : "💜Minha Caixinha"}
         </span>
 
         <h4>{conta.nome}</h4>

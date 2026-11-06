@@ -56,13 +56,7 @@ function converterValorEmCentavos(texto) {
 }
 
 // ============================================================
-// [03] COMPONENTES SECUNDÁRIOS DE INTERFACE
-// ============================================================
-
-
-
-// ============================================================
-// [04] HOOK DE CONEXÃO COM O SUPABASE
+// [03] HOOK DE CONEXÃO COM O SUPABASE
 // ============================================================
 
 function useFinanceiro(userId) {
@@ -190,7 +184,7 @@ function useFinanceiro(userId) {
 }
 
 // ============================================================
-// [05] COMPONENTE PRINCIPAL (APP)
+// [04] COMPONENTE PRINCIPAL (APP)
 // ============================================================
 
 export default function App({ userId }) {
@@ -255,7 +249,7 @@ export default function App({ userId }) {
   }, [contas]);
 
   // ============================================================
-  // [06] AÇÕES DO USUÁRIO
+  // [05] AÇÕES DO USUÁRIO
   // ============================================================
 
   async function adicionarTransacao(evento) {
@@ -524,7 +518,7 @@ async function realizarTransferenciaExterna(evento) {
   }
 
   // ============================================================
-  // [07] CÁLCULOS E FILTROS
+  // [06] CÁLCULOS E FILTROS
   // ============================================================
 
   const saldo = contas.reduce(
@@ -581,7 +575,7 @@ async function realizarTransferenciaExterna(evento) {
   ];
 
   // ============================================================
-  // [08] RENDERIZAÇÃO DA INTERFACE
+  // [07] RENDERIZAÇÃO DA INTERFACE
   // ============================================================
 
   return (
@@ -650,9 +644,9 @@ async function realizarTransferenciaExterna(evento) {
           )}
 
           <form className="formulario-conta" onSubmit={criarContaReserva}>
-            <h4>Criar conta de reserva</h4>
+            <h4>Criar uma Caixinha</h4>
             <div className="campo">
-              <label htmlFor="nome-conta-reserva">Nome da conta</label>
+              <label htmlFor="nome-conta-reserva">Nome da Caixinha</label>
               <input
                 id="nome-conta-reserva"
                 value={nomeNovaConta}
@@ -668,7 +662,7 @@ async function realizarTransferenciaExterna(evento) {
               className="botao-adicionar"
               disabled={processandoConta || carregandoContas}
             >
-              {processandoConta ? "Criando..." : "+ Criar conta"}
+              {processandoConta ? "Criando..." : "+ Criar Caixinha"}
             </button>
           </form>
         </section>
