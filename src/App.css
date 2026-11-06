@@ -751,3 +751,9 @@ select option {
   .slogan-header { font-size: .54rem; letter-spacing: .12em; }
   .cabecalho h1 { font-size: 1.35rem; }
 }
+.botao-olho img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
+}
