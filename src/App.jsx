@@ -4,21 +4,9 @@
 // ============================================================
 
 import { useCallback, useEffect, useState } from "react";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { supabase } from "./lib/supabaseClient";
-import CardConta from "./components/contas/CardConta";
-import ItemMovimentacao from "./components/contas/ItemMovimentacao";
-import ItemTransacao from "./components/transacoes/ItemTransacao";
-import HistoricoTransacoes from "./components/transacoes/HistoricoTransacoes";
-import FormularioTransacao from "./components/transacoes/FormularioTransacao";
-import Sidebar from "./components/layout/Sidebar";
-import Header from "./components/layout/Header";
-import SaldoGeral from "./components/dashboard/SaldoGeral";
-import GraficoDespesas from "./components/dashboard/GraficoDespesas";
-import ResumoFinanceiro from "./components/dashboard/ResumoFinanceiro";
-import UltimasMovimentacoes from "./components/dashboard/UltimasMovimentacoes";
-import NotificacaoBanner from "./components/ui/NotificacaoBanner";
-import ZuvinaLogo from "./components/ui/ZuvinaLogo";
-import Cartoes from "./pages/Cartoes";
+import zuvinaOwl from "./assets/zuvina-owl.png";
 import "./App.css";
 
 // ============================================================
@@ -59,7 +47,224 @@ function converterValorEmCentavos(texto) {
 }
 
 // ============================================================
-// [03] HOOK DE CONEXÃO COM O SUPABASE
+// [03] COMPONENTES SECUNDÁRIOS DE INTERFACE
+// ============================================================
+
+function ZuvinaLogo({ width = 38, height = 38 }) {
+  return (
+    <img
+      src={zuvinaOwl}
+      alt="Zuvina"
+      width={width}
+      height={height}
+      className="zuvina-logo-image"
+      style={{
+        objectFit: "contain",
+        display: "block",
+        filter: "drop-shadow(0 0 5px rgba(171, 85, 247, 0.65))",
+      }}
+    />
+  );
+}
+
+function NotificacaoBanner({ notificacao, onClose }) {
+  if (!notificacao) return null;
+  return (
+    <div
+      className={`notificacao notificacao-${notificacao.tipo}`}
+      role="status"
+      aria-live="polite"
+    >
+      <span>{notificacao.mensagem}</span>
+      <button type="button" onClick={onClose} aria-label="Fechar notificação">
+        ×
+      </button>
+    </div>
+  );
+}
+
+function CardConta({ conta, mostrarValores, onCopiarNotificacao }) {
+  const codigoFormatado = conta.codigo
+    ? `${conta.codigo.slice(0, 8)}...${conta.codigo.slice(-6)}`
+    : "";
+
+  function copiarCodigo() {
+    if (!conta.codigo) return;
+    navigator.clipboard.writeText(conta.codigo);
+    onCopiarNotificacao("Código da conta copiado!");
+  }
+
+  return (
+    <article className="card-conta">
+      <div>
+        <span className="texto-secundario">
+          {conta.tipo === "principal" ? "🏦 Conta principal" : "💜 Conta de reserva"}
+        </span>
+        <h4>{conta.nome}</h4>
+        <div className="codigo-conta-badge" title={conta.codigo}>
+          <span>Código: {codigoFormatado}</span>
+          <button
+            type="button"
+            className="btn-copiar"
+            onClick={copiarCodigo}
+            title="Copiar Código"
+          >
+            📋
+          </button>
+        </div>
+      </div>
+      <strong>
+        {mostrarValores ? formatarDinheiro(conta.saldo_centavos) : "R$ ••••••"}
+      </strong>
+    </article>
+  );
+}
+
+function ItemMovimentacao({ mov, contaNome, mostrarValores }) {
+  const externa = Boolean(mov.transferencia_id);
+  const titulo = externa
+    ? mov.tipo === "saida"
+      ? "Transferência enviada"
+      : "Transferência recebida"
+    : mov.tipo === "saida"
+    ? "Saída de Caixinha"
+    : "Entrada em Caixinha";
+
+  return (
+    <li className="item-transacao">
+      <div className="detalhes-transacao">
+        <strong>{mov.descricao || titulo}</strong>
+        <small>
+          {titulo} · {contaNome || "Conta"} · {formatarData(mov.criada_em)}
+        </small>
+      </div>
+      <div className="valor-transacao">
+        <strong className={`valor-tag ${mov.tipo === "entrada" ? "receita" : "despesa"}`}>
+          {mov.tipo === "entrada" ? "+" : "-"}
+          {mostrarValores ? formatarDinheiro(mov.valor_centavos) : "R$ •••"}
+        </strong>
+      </div>
+    </li>
+  );
+}
+
+function ItemTransacao({
+  t,
+  mostrarValores,
+  salvando,
+  carregandoDados,
+  transacaoEmEdicao,
+  onIniciarEdicao,
+  onExcluir,
+  onSalvarEdicao,
+  onCancelarEdicao,
+  descricaoEdicao,
+  setDescricaoEdicao,
+  valorEdicao,
+  setValorEdicao,
+  categoriaEdicao,
+  setCategoriaEdicao,
+}) {
+  const estaEmEdicao = transacaoEmEdicao?.id === t.id;
+
+  return (
+    <li className="item-transacao">
+      <div className="detalhes-transacao">
+        <strong>{t.descricao}</strong>
+        <small>
+          {t.categoria || "Sem categoria"} · {formatarData(t.data)}
+        </small>
+      </div>
+
+      <div className="valor-transacao">
+        <strong className={`valor-tag ${t.tipo}`}>
+          {t.tipo === "receita" ? "+" : "-"}
+          {mostrarValores ? formatarDinheiro(t.valor) : "R$ •••"}
+        </strong>
+        <button
+          type="button"
+          className="botao-icon botao-editar"
+          onClick={() => onIniciarEdicao(t)}
+          disabled={salvando || carregandoDados}
+          aria-label={`Editar ${t.descricao}`}
+          title="Editar transação"
+        >
+          ✏️
+        </button>
+        <button
+          type="button"
+          className="botao-icon botao-excluir"
+          onClick={() => onExcluir(t.id)}
+          disabled={salvando || carregandoDados}
+          aria-label={`Excluir ${t.descricao}`}
+          title="Excluir transação"
+        >
+          ✕
+        </button>
+      </div>
+
+      {estaEmEdicao && (
+        <form className="formulario-edicao" onSubmit={onSalvarEdicao}>
+          <div className="campo">
+            <label htmlFor={`editar-descricao-${t.id}`}>Descrição</label>
+            <input
+              id={`editar-descricao-${t.id}`}
+              value={descricaoEdicao}
+              onChange={(e) => setDescricaoEdicao(e.target.value)}
+              placeholder="Descrição"
+            />
+          </div>
+          <div className="campos-linha">
+            <div className="campo">
+              <label htmlFor={`editar-valor-${t.id}`}>Valor (R$)</label>
+              <input
+                id={`editar-valor-${t.id}`}
+                value={valorEdicao}
+                onChange={(e) => setValorEdicao(e.target.value)}
+                inputMode="decimal"
+                placeholder="Ex.: 35,50"
+              />
+            </div>
+            <div className="campo">
+              <label htmlFor={`editar-categoria-${t.id}`}>Categoria</label>
+              <select
+                id={`editar-categoria-${t.id}`}
+                value={categoriaEdicao}
+                onChange={(e) => setCategoriaEdicao(e.target.value)}
+              >
+                {CATEGORIAS[t.tipo].map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="acoes-edicao">
+            <button
+              type="submit"
+              className="botao-salvar"
+              disabled={salvando || carregandoDados}
+            >
+              {salvando ? "Salvando..." : "Salvar alterações"}
+            </button>
+            <button
+              type="button"
+              className="botao-cancelar"
+              disabled={salvando}
+              onClick={onCancelarEdicao}
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
+    </li>
+  );
+}
+
+// ============================================================
+// [04] HOOK DE CONEXÃO COM O SUPABASE
 // ============================================================
 
 function useFinanceiro(userId) {
@@ -187,7 +392,7 @@ function useFinanceiro(userId) {
 }
 
 // ============================================================
-// [04] COMPONENTE PRINCIPAL (APP)
+// [05] COMPONENTE PRINCIPAL (APP)
 // ============================================================
 
 export default function App({ userId }) {
@@ -235,12 +440,8 @@ export default function App({ userId }) {
   const [nomeNovaConta, setNomeNovaConta] = useState("");
   const [contaOrigem, setContaOrigem] = useState("");
   const [contaDestino, setContaDestino] = useState("");
-// Movimentação entre Caixinhas
-  const [valorCaixinha, setValorCaixinha] = useState("");
-  const [descricaoCaixinha, setDescricaoCaixinha] = useState("");
-// Transferência Externa
-  const [valorTransferenciaExterna, setValorTransferenciaExterna] = useState("");
-  const [descricaoTransferenciaExterna, setDescricaoTransferenciaExterna] = useState("");
+  const [valorTransferencia, setValorTransferencia] = useState("");
+  const [descricaoTransferencia, setDescricaoTransferencia] = useState("");
   const [processandoConta, setProcessandoConta] = useState(false);
   const [codigoDestinoExterno, setCodigoDestinoExterno] = useState("");
 
@@ -252,7 +453,7 @@ export default function App({ userId }) {
   }, [contas]);
 
   // ============================================================
-  // [05] AÇÕES DO USUÁRIO
+  // [06] AÇÕES DO USUÁRIO
   // ============================================================
 
   async function adicionarTransacao(evento) {
@@ -320,113 +521,102 @@ export default function App({ userId }) {
     }
   }
 
+  async function realizarTransferencia(evento) {
+    evento.preventDefault();
+    if (processandoConta) return;
 
-async function realizarTransferencia(evento) {
-  evento.preventDefault();
-  if (processandoConta) return;
+    const centavos = converterValorEmCentavos(valorTransferencia);
 
-  const centavos = converterValorEmCentavos(valorCaixinha);
+    if (!contaOrigem || !contaDestino) {
+      mostrarNotificacao("Selecione as duas contas.", "erro");
+      return;
+    }
+    if (contaOrigem === contaDestino) {
+      mostrarNotificacao("Escolha contas diferentes.", "erro");
+      return;
+    }
+    if (centavos === null) {
+      mostrarNotificacao("Informe um valor válido.", "erro");
+      return;
+    }
 
-  if (!contaOrigem || !contaDestino) {
-    mostrarNotificacao("Selecione as duas contas.", "erro");
-    return;
+    setProcessandoConta(true);
+    try {
+      const { error } = await supabase.rpc("mover_entre_contas_proprias", {
+        p_conta_origem: contaOrigem,
+        p_conta_destino: contaDestino,
+        p_valor_centavos: centavos,
+        p_descricao:
+          descricaoTransferencia.trim() || "Movimentação entre caixinhas",
+      });
+
+      if (error) throw error;
+
+      setValorTransferencia("");
+      setDescricaoTransferencia("");
+      await carregarContas();
+      await carregarMovimentacoes();
+      mostrarNotificacao("Movimentação realizada!");
+    } catch (error) {
+      console.error("Erro ao movimentar caixinhas:", error);
+      mostrarNotificacao(
+        error.message || "Não foi possível movimentar o dinheiro.",
+        "erro"
+      );
+    } finally {
+      setProcessandoConta(false);
+    }
   }
 
-  if (contaOrigem === contaDestino) {
-    mostrarNotificacao("Escolha contas diferentes.", "erro");
-    return;
+  async function realizarTransferenciaExterna(evento) {
+    evento.preventDefault();
+    if (processandoConta) return;
+
+    const centavos = converterValorEmCentavos(valorTransferencia);
+    const principal = contas.find((conta) => conta.tipo === "principal");
+
+    if (!principal) {
+      mostrarNotificacao("Conta Principal não encontrada.", "erro");
+      return;
+    }
+    if (!codigoDestinoExterno.trim()) {
+      mostrarNotificacao("Informe o código do destinatário.", "erro");
+      return;
+    }
+    if (centavos === null) {
+      mostrarNotificacao("Informe um valor válido.", "erro");
+      return;
+    }
+
+    setProcessandoConta(true);
+    try {
+      const { error } = await supabase.rpc("realizar_transferencia_externa", {
+        p_conta_origem: principal.id,
+        p_codigo_destino: codigoDestinoExterno.trim(),
+        p_valor_centavos: centavos,
+        p_descricao:
+          descricaoTransferencia.trim() || "Transferência entre usuários",
+      });
+
+      if (error) throw error;
+
+      setCodigoDestinoExterno("");
+      setValorTransferencia("");
+      setDescricaoTransferencia("");
+
+      await carregarContas();
+      await carregarMovimentacoes();
+      mostrarNotificacao("Transferência enviada!");
+    } catch (error) {
+      console.error("Erro na transferência externa:", error);
+      mostrarNotificacao(
+        error.message || "Não foi possível realizar a transferência.",
+        "erro"
+      );
+    } finally {
+      setProcessandoConta(false);
+    }
   }
-
-  if (centavos === null) {
-    mostrarNotificacao("Informe um valor válido.", "erro");
-    return;
-  }
-
-  setProcessandoConta(true);
-
-  try {
-    const { error } = await supabase.rpc("mover_entre_contas_proprias", {
-      p_conta_origem: contaOrigem,
-      p_conta_destino: contaDestino,
-      p_valor_centavos: centavos,
-      p_descricao:
-        descricaoCaixinha.trim() || "Movimentação entre caixinhas",
-    });
-
-    if (error) throw error;
-
-    setValorCaixinha("");
-    setDescricaoCaixinha("");
-
-    await carregarContas();
-    await carregarMovimentacoes();
-
-    mostrarNotificacao("Movimentação realizada!");
-  } catch (error) {
-    console.error("Erro ao movimentar caixinhas:", error);
-    mostrarNotificacao(
-      error.message || "Não foi possível movimentar o dinheiro.",
-      "erro"
-    );
-  } finally {
-    setProcessandoConta(false);
-  }
-}
-
-
-async function realizarTransferenciaExterna(evento) {
-  evento.preventDefault();
-  if (processandoConta) return;
-
-  const centavos = converterValorEmCentavos(valorTransferenciaExterna);
-  const principal = contas.find((conta) => conta.tipo === "principal");
-
-  if (!principal) {
-    mostrarNotificacao("Conta Principal não encontrada.", "erro");
-    return;
-  }
-
-  if (!codigoDestinoExterno.trim()) {
-    mostrarNotificacao("Informe o código do destinatário.", "erro");
-    return;
-  }
-
-  if (centavos === null) {
-    mostrarNotificacao("Informe um valor válido.", "erro");
-    return;
-  }
-
-  setProcessandoConta(true);
-
-  try {
-    const { error } = await supabase.rpc("realizar_transferencia_externa", {
-      p_conta_origem: principal.id,
-      p_codigo_destino: codigoDestinoExterno.trim(),
-      p_valor_centavos: centavos,
-      p_descricao:
-        descricaoTransferenciaExterna.trim() || "Transferência entre usuários",
-    });
-
-    if (error) throw error;
-
-    setCodigoDestinoExterno("");
-    setValorTransferenciaExterna("");
-    setDescricaoTransferenciaExterna("");
-
-    await carregarContas();
-    await carregarMovimentacoes();
-
-    mostrarNotificacao("Transferência enviada!");
-  } catch (error) {
-    console.error("Erro na transferência externa:", error);
-    mostrarNotificacao(
-      error.message || "Não foi possível realizar a transferência.",
-      "erro"
-    );
-  } finally {
-    setProcessandoConta(false);
-  }
-}
 
   function iniciarEdicao(transacao) {
     if (salvando || carregandoDados) return;
@@ -521,7 +711,7 @@ async function realizarTransferenciaExterna(evento) {
   }
 
   // ============================================================
-  // [06] CÁLCULOS E FILTROS
+  // [07] CÁLCULOS E FILTROS
   // ============================================================
 
   const saldo = contas.reduce(
@@ -578,7 +768,7 @@ async function realizarTransferenciaExterna(evento) {
   ];
 
   // ============================================================
-  // [07] RENDERIZAÇÃO DA INTERFACE
+  // [08] RENDERIZAÇÃO DA INTERFACE
   // ============================================================
 
   return (
@@ -588,14 +778,41 @@ async function realizarTransferenciaExterna(evento) {
         onClose={() => setNotificacao(null)}
       />
 
-      <Sidebar
-        secaoAtiva={secaoAtiva}
-        setSecaoAtiva={setSecaoAtiva}
-      />
+      <aside className="zuvina-sidebar" aria-label="Navegação principal">
+        <a className="sidebar-brand" href="#inicio" aria-label="Zuvina - início">
+          <ZuvinaLogo width={42} height={42} />
+          <span><strong>ZUVINA</strong><small>SEU FUTURO, MAIS INTELIGENTE.</small></span>
+        </a>
+        <span className="sidebar-label">MENU PRINCIPAL</span>
+        <nav className="sidebar-nav">
+          <a className={`sidebar-link ${secaoAtiva === "inicio" ? "ativo" : ""}`} href="#inicio" onClick={() => setSecaoAtiva("inicio")}><span>⌂</span>Visão geral</a>
+          <a className={`sidebar-link ${secaoAtiva === "contas" ? "ativo" : ""}`} href="#contas" onClick={() => setSecaoAtiva("contas")}><span>▣</span>Minhas contas</a>
+          <a className={`sidebar-link ${secaoAtiva === "operacoes" ? "ativo" : ""}`} href="#operacoes" onClick={() => setSecaoAtiva("operacoes")}><span>⇄</span>Transferências</a>
+          <a className={`sidebar-link ${secaoAtiva === "analises" ? "ativo" : ""}`} href="#analises" onClick={() => setSecaoAtiva("analises")}><span>◷</span>Análises</a>
+          <a className={`sidebar-link ${secaoAtiva === "movimentacoes" ? "ativo" : ""}`} href="#movimentacoes" onClick={() => setSecaoAtiva("movimentacoes")}><span>↕</span>Movimentações</a>
+          <a className={`sidebar-link ${secaoAtiva === "transacoes" ? "ativo" : ""}`} href="#transacoes" onClick={() => setSecaoAtiva("transacoes")}><span>≡</span>Histórico</a>
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="sidebar-help"><span className="sidebar-help-icon">✦</span><strong>Seu dinheiro, mais leve.</strong><small>Organize sua vida financeira com clareza.</small></div>
+          <span className="sidebar-version">Zuvina · Ambiente seguro</span>
+        </div>
+      </aside>
 
       <div className="zuvina-main">
       {/* Cabeçalho */}
-      <Header />
+      <header className="cabecalho" id="inicio">
+        <div className="logotipo-wrapper">
+          <ZuvinaLogo />
+          <div>
+            <h1>ZUVINA</h1>
+            <span className="slogan-header">SEU FUTURO, MAIS INTELIGENTE.</span>
+          </div>
+        </div>
+        <div className="usuario-saudacao">
+          <span>Olá, bem-vindo! 👋</span>
+        </div>
+      </header>
+
       <main>
         {carregandoDados && (
           <p className="aviso-banco" role="status">
@@ -609,34 +826,62 @@ async function realizarTransferenciaExterna(evento) {
         )}
 
         {/* Saldo Geral */}
-       {secaoAtiva === "inicio" && (
-         <section id="inicio">
-           <SaldoGeral
-             saldoExibido={
-               mostrarValores ? formatarDinheiro(saldo) : "R$ ••••••"
-             } 
-             mostrarValores={mostrarValores}
-             onToggleValores={() =>
-               setMostrarValores((atual) => !atual)
-             }
-           />
-           <ResumoFinanceiro
-             receitas={receitasMes}
-             despesas={despesasMes}
-             resultado={resultadoMes}
-             mostrarValores={mostrarValores}
-             formatarDinheiro={formatarDinheiro}
-           />
-           <UltimasMovimentacoes
-             transacoes={transacoes}
-             mostrarValores={mostrarValores}
-             formatarDinheiro={formatarDinheiro}
-           />
-         </section>
-       )}
+        <section className="saldo">
+          <div className="saldo-topo">
+            <p>Seu saldo geral</p>
+            <button
+              type="button"
+              className="botao-olho"
+              onClick={() => setMostrarValores((atual) => !atual)}
+              aria-label={mostrarValores ? "Ocultar saldo" : "Mostrar saldo"}
+            >
+              {mostrarValores ? "👁️" : "🙈"}
+            </button>
+          </div>
+          <h2>{mostrarValores ? formatarDinheiro(saldo) : "R$ ••••••"}</h2>
+          <span className="saldo-subtitulo">Seu dinheiro, mais leve.</span>
+        </section>
+
+        {/* Resumo Mensal */}
+        <section className="resumo-mensal">
+          <div className="resumo-cabecalho">
+            <h3>Resumo do mês</h3>
+            <span className="mes-referencia">
+              {hoje.toLocaleDateString("pt-BR", {
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+          <div className="cards-resumo">
+            <div className="card-resumo card-receita">
+              <span>Receitas</span>
+              <strong className="receita">
+                {mostrarValores ? formatarDinheiro(receitasMes) : "R$ •••"}
+              </strong>
+            </div>
+            <div className="card-resumo card-despesa">
+              <span>Despesas</span>
+              <strong className="despesa">
+                {mostrarValores ? formatarDinheiro(despesasMes) : "R$ •••"}
+              </strong>
+            </div>
+            <div
+              className={`card-resumo ${
+                resultadoMes >= 0
+                  ? "card-resultado-positivo"
+                  : "card-resultado-negativo"
+              }`}
+            >
+              <span>Resultado do mês</span>
+              <strong className={resultadoMes >= 0 ? "receita" : "despesa"}>
+                {mostrarValores ? formatarDinheiro(resultadoMes) : "R$ •••"}
+              </strong>
+            </div>
+          </div>
+        </section>
 
         {/* Minhas Contas e Caixinhas */}
-        {secaoAtiva === "contas" && (
         <section className="minhas-contas" id="contas">
           <div className="resumo-cabecalho">
             <div>
@@ -658,16 +903,15 @@ async function realizarTransferenciaExterna(evento) {
                   conta={conta}
                   mostrarValores={mostrarValores}
                   onCopiarNotificacao={mostrarNotificacao}
-                  formatarDinheiro={formatarDinheiro}
                 />
               ))}
             </div>
           )}
 
           <form className="formulario-conta" onSubmit={criarContaReserva}>
-            <h4>Criar uma Caixinha</h4>
+            <h4>Criar conta de reserva</h4>
             <div className="campo">
-              <label htmlFor="nome-conta-reserva">Nome da Caixinha</label>
+              <label htmlFor="nome-conta-reserva">Nome da conta</label>
               <input
                 id="nome-conta-reserva"
                 value={nomeNovaConta}
@@ -683,14 +927,12 @@ async function realizarTransferenciaExterna(evento) {
               className="botao-adicionar"
               disabled={processandoConta || carregandoContas}
             >
-              {processandoConta ? "Criando..." : "+ Criar Caixinha"}
+              {processandoConta ? "Criando..." : "+ Criar conta"}
             </button>
           </form>
         </section>
-        )}
 
-        {/* Operações Lado a Lado (Grid) */}     
-        {secaoAtiva === "operacoes" ? (
+        {/* Operações Lado a Lado (Grid) */}
         <div className="operacoes-grid">
           {/* Movimentar Caixinhas */}
           <section className="card-operacao" id="operacoes">
@@ -740,8 +982,8 @@ async function realizarTransferenciaExterna(evento) {
                   <label htmlFor="valor-transferencia-caixinha">Valor (R$)</label>
                   <input
                     id="valor-transferencia-caixinha"
-                    value={valorCaixinha}
-                    onChange={(e) => setValorCaixinha(e.target.value)}
+                    value={valorTransferencia}
+                    onChange={(e) => setValorTransferencia(e.target.value)}
                     placeholder="Ex.: 100,00"
                     inputMode="decimal"
                     required
@@ -752,8 +994,8 @@ async function realizarTransferenciaExterna(evento) {
                   <label htmlFor="descricao-transferencia-caixinha">Descrição</label>
                   <input
                     id="descricao-transferencia-caixinha"
-                    value={descricaoCaixinha}
-                    onChange={(e) => setDescricaoCaixinha(e.target.value)}
+                    value={descricaoTransferencia}
+                    onChange={(e) => setDescricaoTransferencia(e.target.value)}
                     placeholder="Opcional"
                     maxLength={120}
                   />
@@ -791,8 +1033,8 @@ async function realizarTransferenciaExterna(evento) {
                   <label htmlFor="valor-transferencia-externa">Valor (R$)</label>
                   <input
                     id="valor-transferencia-externa"
-                    value={valorTransferenciaExterna}
-                    onChange={(e) => setValorTransferenciaExterna(e.target.value)}
+                    value={valorTransferencia}
+                    onChange={(e) => setValorTransferencia(e.target.value)}
                     placeholder="Ex.: 50,00"
                     inputMode="decimal"
                     required
@@ -803,8 +1045,8 @@ async function realizarTransferenciaExterna(evento) {
                   <label htmlFor="descricao-transferencia-externa">Descrição</label>
                   <input
                     id="descricao-transferencia-externa"
-                    value={descricaoTransferenciaExterna}
-                    onChange={(e) => setDescricaoTransferenciaExterna(e.target.value)}
+                    value={descricaoTransferencia}
+                    onChange={(e) => setDescricaoTransferencia(e.target.value)}
                     placeholder="Opcional"
                     maxLength={120}
                   />
@@ -825,39 +1067,137 @@ async function realizarTransferenciaExterna(evento) {
             </form>
           </section>
         </div>
-        ) : null}
+
         {/* Dashboard: Gráfico e Nova Transação */}
         <div className="dashboard-duas-colunas" id="analises">
+          <section className="grafico-container">
+            <h3>Despesas por categoria</h3>
+            <p className="texto-secundario">Distribuição das despesas do mês atual</p>
+            {dadosGrafico.length === 0 ? (
+              <p className="texto-vazio">
+                Adicione uma despesa para visualizar o gráfico.
+              </p>
+            ) : (
+              <div className="area-grafico">
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={dadosGrafico}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={85}
+                      paddingAngle={4}
+                      stroke="none"
+                    >
+                      {dadosGrafico.map((item, index) => (
+                        <Cell
+                          key={item.name}
+                          fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(valorTooltip) => formatarDinheiro(valorTooltip)}
+                      contentStyle={{
+                        background: "#130F24",
+                        border: "1px solid rgba(171, 85, 247, 0.4)",
+                        borderRadius: "12px",
+                        color: "#F4F0FA",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                      }}
+                      itemStyle={{ color: "#F4F0FA" }}
+                    />
+                    <Legend
+                      wrapperStyle={{
+                        color: "#9CA3AF",
+                        fontSize: "12px",
+                        paddingTop: "10px",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </section>
 
-        {/* Análises */}
-        {secaoAtiva === "analises" && (
-          <GraficoDespesas
-            dadosGrafico={dadosGrafico}
-            coresGrafico={CORES_GRAFICO}
-            formatarDinheiro={formatarDinheiro}
-          />
-        )}
-         {secaoAtiva === "lancamentos" && (
-          <FormularioTransacao
-            tipo={tipo}
-            mudarTipo={mudarTipo}
-            descricao={descricao}
-            setDescricao={setDescricao}
-            valor={valor}
-            setValor={setValor}
-            categoria={categoria}
-            setCategoria={setCategoria}
-            categorias={CATEGORIAS}
-            erro={erro}
-            salvando={salvando}
-            carregandoDados={carregandoDados}
-            onAdicionar={adicionarTransacao}
-         />
-        )}
+          <section className="formulario">
+            <h3>Nova transação</h3>
+            <div className="seletor-tipo">
+              <button
+                type="button"
+                className={tipo === "receita" ? "ativo tipo-receita" : ""}
+                onClick={() => mudarTipo("receita")}
+              >
+                + Receita
+              </button>
+              <button
+                type="button"
+                className={tipo === "despesa" ? "ativo tipo-despesa" : ""}
+                onClick={() => mudarTipo("despesa")}
+              >
+                - Despesa
+              </button>
+            </div>
+
+            <form onSubmit={adicionarTransacao}>
+              <div className="campo">
+                <label htmlFor="descricao">Descrição</label>
+                <input
+                  id="descricao"
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  placeholder="Ex.: Compras no mercado"
+                />
+              </div>
+
+              <div className="campos-linha">
+                <div className="campo">
+                  <label htmlFor="valor">Valor (R$)</label>
+                  <input
+                    id="valor"
+                    value={valor}
+                    onChange={(e) => setValor(e.target.value)}
+                    placeholder="Ex.: 35,50"
+                    inputMode="decimal"
+                  />
+                </div>
+                <div className="campo">
+                  <label htmlFor="categoria">Categoria</label>
+                  <select
+                    id="categoria"
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value)}
+                  >
+                    {CATEGORIAS[tipo].map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {erro && (
+                <p className="erro" role="alert">
+                  {erro}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="botao-adicionar"
+                disabled={salvando || carregandoDados}
+              >
+                {salvando ? "Aguarde..." : "+ Adicionar transação"}
+              </button>
+            </form>
+          </section>
         </div>
-      
-        {/* Histórico de Movimentações entre Contas */}  
-        {secaoAtiva === "movimentacoes" ? (
+
+        {/* Histórico de Movimentações entre Contas */}
         <section className="historico-movimentacoes" id="movimentacoes">
           <h3>Movimentações de contas</h3>
           <p className="texto-secundario">
@@ -871,57 +1211,82 @@ async function realizarTransferenciaExterna(evento) {
               Nenhuma movimentação de conta encontrada.
             </p>
           ) : (
-         <ul className="lista-transacoes">
-            {movimentacoes.map((mov) => {
-           const conta = contas.find((c) => c.id === mov.conta_id);
-
-        return (
-          
-         <ItemMovimentacao
-            key={mov.id}
-            mov={mov}
-            contaNome={conta?.nome}
-            mostrarValores={mostrarValores}
-            formatarData={formatarData}
-            formatarDinheiro={formatarDinheiro}
-        />
-          );
-         })}
-        </ul>
+            <ul className="lista-transacoes">
+              {movimentacoes.map((mov) => {
+                const conta = contas.find((c) => c.id === mov.conta_id);
+                return (
+                  <ItemMovimentacao
+                    key={mov.id}
+                    mov={mov}
+                    contaNome={conta?.nome}
+                    mostrarValores={mostrarValores}
+                  />
+                );
+              })}
+            </ul>
           )}
         </section>
-        ) : null}
-        {/* Cartões */}
-        {secaoAtiva === "cartoes" && (
-        <Cartoes />
-        )}
-       {secaoAtiva === "transacoes" && (
-       <HistoricoTransacoes
-           transacoesFiltradas={transacoesFiltradas}
-           carregandoDados={carregandoDados}
-           erroBanco={erroBanco}
-           pesquisa={pesquisa}
-           setPesquisa={setPesquisa}
-           filtroTipo={filtroTipo}
-           setFiltroTipo={setFiltroTipo}
-           filtroCategoria={filtroCategoria}
-           setFiltroCategoria={setFiltroCategoria}
-           todasCategorias={todasCategorias}
-           mostrarValores={mostrarValores}
-           salvando={salvando}
-           transacaoEmEdicao={transacaoEmEdicao}
-           onIniciarEdicao={iniciarEdicao}
-           onExcluir={excluirTransacao}
-           onSalvarEdicao={salvarEdicao}
-           onCancelarEdicao={() => setTransacaoEmEdicao(null)}
-           descricaoEdicao={descricaoEdicao}
-           setDescricaoEdicao={setDescricaoEdicao}
-           valorEdicao={valorEdicao}
-           setValorEdicao={setValorEdicao}
-           categoriaEdicao={categoriaEdicao}
-           setCategoriaEdicao={setCategoriaEdicao}
-        />
-       )}
+
+        {/* Histórico Geral */}
+        <section className="historico" id="transacoes">
+          <h3>Últimas transações</h3>
+          <div className="filtros">
+            <input
+              aria-label="Pesquisar transações"
+              placeholder="Pesquisar transações..."
+              value={pesquisa}
+              onChange={(e) => setPesquisa(e.target.value)}
+            />
+            <select
+              aria-label="Filtrar por tipo"
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+            >
+              <option value="todos">Todas</option>
+              <option value="receita">Receitas</option>
+              <option value="despesa">Despesas</option>
+            </select>
+            <select
+              aria-label="Filtrar por categoria"
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
+            >
+              <option value="todas">Todas as categorias</option>
+              {todasCategorias.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {!carregandoDados && !erroBanco && transacoesFiltradas.length === 0 ? (
+            <p className="texto-vazio">Nenhuma transação encontrada.</p>
+          ) : (
+            <ul className="lista-transacoes">
+              {transacoesFiltradas.map((t) => (
+                <ItemTransacao
+                  key={t.id}
+                  t={t}
+                  mostrarValores={mostrarValores}
+                  salvando={salvando}
+                  carregandoDados={carregandoDados}
+                  transacaoEmEdicao={transacaoEmEdicao}
+                  onIniciarEdicao={iniciarEdicao}
+                  onExcluir={excluirTransacao}
+                  onSalvarEdicao={salvarEdicao}
+                  onCancelarEdicao={() => setTransacaoEmEdicao(null)}
+                  descricaoEdicao={descricaoEdicao}
+                  setDescricaoEdicao={setDescricaoEdicao}
+                  valorEdicao={valorEdicao}
+                  setValorEdicao={setValorEdicao}
+                  categoriaEdicao={categoriaEdicao}
+                  setCategoriaEdicao={setCategoriaEdicao}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
       </main>
       </div>
     </div>
