@@ -1,0 +1,267 @@
+.pagina-cartoes {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 10px 0 30px;
+  color: #f5f0ff;
+}
+
+.cartoes-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.cartoes-subtitulo {
+  color: #ad8be9;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.cartoes-cabecalho h2 {
+  margin: 8px 0;
+  font-size: 28px;
+}
+
+.cartoes-cabecalho p {
+  margin: 0;
+  color: #aaa0b8;
+  font-size: 14px;
+}
+
+.botao-novo-cartao {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #a77be8, #7541c5);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cartoes-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cartao-resumo {
+  padding: 22px;
+  border: 1px solid #38284a;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #261b34, #1d1528);
+}
+
+.cartao-resumo span,
+.cartao-dados small,
+.cartao-limite-texto small {
+  display: block;
+  color: #a99db7;
+  font-size: 12px;
+}
+
+.cartao-resumo strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 23px;
+}
+
+.cartoes-lista-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cartoes-lista-cabecalho h3 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.cartoes-lista-cabecalho span {
+  color: #988ba6;
+  font-size: 12px;
+}
+
+.cartoes-lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.cartao-item {
+  overflow: hidden;
+  border: 1px solid #38284a;
+  border-radius: 17px;
+  background: #21182c;
+}
+
+.cartao-visual {
+  min-height: 190px;
+  padding: 23px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #30203f, #120d19 75%);
+  position: relative;
+  overflow: hidden;
+}
+
+.cartao-visual::after {
+  content: "";
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  right: -65px;
+  top: -85px;
+  background: #8e5bd0;
+  opacity: 0.22;
+  filter: blur(2px);
+}
+
+.cartao-visual.debito {
+  background: linear-gradient(135deg, #56358a, #21152f 75%);
+}
+
+.cartao-visual-topo,
+.cartao-visual-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.cartao-visual-topo > span:first-child {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.cartao-chip {
+  font-size: 28px;
+}
+
+.cartao-numero {
+  position: relative;
+  z-index: 1;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.cartao-visual-rodape small {
+  display: block;
+  margin-bottom: 5px;
+  color: #c4b5d3;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.cartao-visual-rodape strong {
+  font-size: 12px;
+}
+
+.cartao-bandeira {
+  font-size: 20px !important;
+  font-style: italic;
+}
+
+.cartao-informacoes {
+  padding: 20px;
+}
+
+.cartao-titulo,
+.cartao-dados,
+.cartao-limite-texto {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.cartao-titulo h4 {
+  margin: 0 0 5px;
+  font-size: 15px;
+}
+
+.cartao-titulo span {
+  color: #a99db7;
+  font-size: 12px;
+}
+
+.cartao-status {
+  color: #8ce0b0 !important;
+  background: #19372b;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+.cartao-dados {
+  margin-top: 22px;
+}
+
+.cartao-dados strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+.cartao-limite {
+  margin-top: 20px;
+}
+
+.cartao-barra {
+  height: 7px;
+  margin-top: 9px;
+  border-radius: 20px;
+  background: #40334d;
+  overflow: hidden;
+}
+
+.cartao-barra-progresso {
+  height: 100%;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #8e5bd0, #c39bff);
+}
+
+.cartao-gerenciar {
+  width: 100%;
+  margin-top: 22px;
+  padding: 12px;
+  border: 1px solid #59416f;
+  border-radius: 9px;
+  background: transparent;
+  color: #c7a5ff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cartao-gerenciar:hover {
+  background: #332341;
+}
+
+@media (max-width: 850px) {
+  .cartoes-lista {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .cartoes-cabecalho {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cartoes-resumo {
+    grid-template-columns: 1fr;
+  }
+
+  .cartoes-lista-cabecalho {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}

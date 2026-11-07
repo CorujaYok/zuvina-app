@@ -14,8 +14,11 @@ import Sidebar from "./components/layout/Sidebar";
 import Header from "./components/layout/Header";
 import SaldoGeral from "./components/dashboard/SaldoGeral";
 import GraficoDespesas from "./components/dashboard/GraficoDespesas";
+import ResumoFinanceiro from "./components/dashboard/ResumoFinanceiro";
+import UltimasMovimentacoes from "./components/dashboard/UltimasMovimentacoes";
 import NotificacaoBanner from "./components/ui/NotificacaoBanner";
 import ZuvinaLogo from "./components/ui/ZuvinaLogo";
+import Cartoes from "./pages/Cartoes";
 import "./App.css";
 
 // ============================================================
@@ -606,16 +609,34 @@ async function realizarTransferenciaExterna(evento) {
         )}
 
         {/* Saldo Geral */}
-       <SaldoGeral
-          saldoExibido={
-          mostrarValores ? formatarDinheiro(saldo) : "R$ ••••••"
-       }
-          mostrarValores={mostrarValores}
-          onToggleValores={() =>
-          setMostrarValores((atual) => !atual)
-       }
-       />
+       {secaoAtiva === "inicio" && (
+         <section id="inicio">
+           <SaldoGeral
+             saldoExibido={
+               mostrarValores ? formatarDinheiro(saldo) : "R$ ••••••"
+             } 
+             mostrarValores={mostrarValores}
+             onToggleValores={() =>
+               setMostrarValores((atual) => !atual)
+             }
+           />
+           <ResumoFinanceiro
+             receitas={receitasMes}
+             despesas={despesasMes}
+             resultado={resultadoMes}
+             mostrarValores={mostrarValores}
+             formatarDinheiro={formatarDinheiro}
+           />
+           <UltimasMovimentacoes
+             transacoes={transacoes}
+             mostrarValores={mostrarValores}
+             formatarDinheiro={formatarDinheiro}
+           />
+         </section>
+       )}
+
         {/* Minhas Contas e Caixinhas */}
+        {secaoAtiva === "contas" && (
         <section className="minhas-contas" id="contas">
           <div className="resumo-cabecalho">
             <div>
@@ -666,8 +687,10 @@ async function realizarTransferenciaExterna(evento) {
             </button>
           </form>
         </section>
+        )}
 
-        {/* Operações Lado a Lado (Grid) */}
+        {/* Operações Lado a Lado (Grid) */}     
+        {secaoAtiva === "operacoes" ? (
         <div className="operacoes-grid">
           {/* Movimentar Caixinhas */}
           <section className="card-operacao" id="operacoes">
@@ -802,17 +825,19 @@ async function realizarTransferenciaExterna(evento) {
             </form>
           </section>
         </div>
-
+        ) : null}
         {/* Dashboard: Gráfico e Nova Transação */}
         <div className="dashboard-duas-colunas" id="analises">
 
+        {/* Análises */}
+        {secaoAtiva === "analises" && (
           <GraficoDespesas
             dadosGrafico={dadosGrafico}
             coresGrafico={CORES_GRAFICO}
             formatarDinheiro={formatarDinheiro}
           />
-
-
+        )}
+         {secaoAtiva === "lancamentos" && (
           <FormularioTransacao
             tipo={tipo}
             mudarTipo={mudarTipo}
@@ -828,10 +853,11 @@ async function realizarTransferenciaExterna(evento) {
             carregandoDados={carregandoDados}
             onAdicionar={adicionarTransacao}
          />
-
+        )}
         </div>
-
-        {/* Histórico de Movimentações entre Contas */}
+      
+        {/* Histórico de Movimentações entre Contas */}  
+        {secaoAtiva === "movimentacoes" ? (
         <section className="historico-movimentacoes" id="movimentacoes">
           <h3>Movimentações de contas</h3>
           <p className="texto-secundario">
@@ -850,6 +876,7 @@ async function realizarTransferenciaExterna(evento) {
            const conta = contas.find((c) => c.id === mov.conta_id);
 
         return (
+          
          <ItemMovimentacao
             key={mov.id}
             mov={mov}
@@ -863,7 +890,12 @@ async function realizarTransferenciaExterna(evento) {
         </ul>
           )}
         </section>
-
+        ) : null}
+        {/* Cartões */}
+        {secaoAtiva === "cartoes" && (
+        <Cartoes />
+        )}
+       {secaoAtiva === "transacoes" && (
        <HistoricoTransacoes
            transacoesFiltradas={transacoesFiltradas}
            carregandoDados={carregandoDados}
@@ -889,6 +921,7 @@ async function realizarTransferenciaExterna(evento) {
            categoriaEdicao={categoriaEdicao}
            setCategoriaEdicao={setCategoriaEdicao}
         />
+       )}
       </main>
       </div>
     </div>

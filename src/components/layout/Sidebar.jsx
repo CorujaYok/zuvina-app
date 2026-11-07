@@ -1,15 +1,16 @@
-
 import zuvinaOwl from "../../assets/zuvina-owl.png";
 
 export default function Sidebar({ secaoAtiva, setSecaoAtiva }) {
-  const itens = [
-    { id: "inicio", icone: "⌂", nome: "Visão geral" },
-    { id: "contas", icone: "▣", nome: "Minhas contas" },
-    { id: "operacoes", icone: "⇄", nome: "Transferências" },
-    { id: "analises", icone: "◷", nome: "Análises" },
-    { id: "movimentacoes", icone: "↕", nome: "Movimentações" },
-    { id: "transacoes", icone: "≡", nome: "Histórico" },
-  ];
+const itens = [
+  { id: "inicio", icone: "⌂", nome: "Visão geral" },
+  { id: "contas", icone: "▣", nome: "Minhas contas" },
+  { id: "operacoes", icone: "⇄", nome: "Transferências" },
+  { id: "cartoes", icone: "▣", nome: "Cartões" },
+  { id: "lancamentos", icone: "＋", nome: "Lançamentos" },
+  { id: "analises", icone: "◷", nome: "Análises" },
+  { id: "movimentacoes", icone: "↕", nome: "Movimentações" },
+  { id: "transacoes", icone: "≡", nome: "Histórico" },
+];
 
   return (
     <aside className="zuvina-sidebar" aria-label="Navegação principal">
