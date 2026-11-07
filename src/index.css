@@ -1,153 +1,80 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap');
 
 :root {
-  /* Cores Principais - Paleta Oficial Zuvina */
-  --bg-deep-black: #0b0814;       /* Fundo principal (Preto Profundo) */
-  --bg-card: #130f24;             /* Fundo dos cartões e painéis */
-  --bg-card-hover: #1c1635;       /* Hover nos cartões e itens de lista */
-  --bg-input: #17122c;            /* Fundo de inputs e seletores */
-  
-  --primary-neon: #ab55f7;        /* Roxo Neon principal */
-  --secondary-lilas: #c084fc;     /* Lilás Elétrico */
-  
-  --text-primary: #f4f0fa;        /* Branco Gelo (Títulos e saldos) */
-  --text-secondary: #9ca3af;      /* Cinza Lunar (Legendas e rótulos) */
-  
-  /* Indicadores Financeiros (Neon High Contrast) */
-  --accent-income: #06b6d4;       /* Receitas (Ciano Néon) */
-  --accent-expense: #ec4899;      /* Despesas (Rosa/Magenta Néon) */
-
-  /* Efeitos e Glow Neon */
-  --glow-primary: 0px 0px 20px rgba(171, 85, 247, 0.45);
-  --glow-button: 0px 4px 15px rgba(171, 85, 247, 0.35);
-  --glow-card: 0px 0px 15px rgba(171, 85, 247, 0.1);
-  --border-neon: 1px solid rgba(171, 85, 247, 0.25);
-  --border-neon-active: 1px solid rgba(171, 85, 247, 0.8);
-
-  /* Tipografia */
-  --font-family-main: 'Montserrat', sans-serif;
-}
-
-body {
-  background-color: var(--bg-deep-black);
+  color-scheme: dark;
+  --bg-deep-black: #090711;
+  --bg-card: #12101d;
+  --bg-card-hover: #1d1730;
+  --bg-input: #100d1b;
+  --primary-neon: #ab55f7;
+  --secondary-lilas: #c084fc;
+  --accent-income: #38c9d9;
+  --accent-expense: #f071b2;
+  --text-primary: #f7f2ff;
+  --text-secondary: #a69bb8;
+  --text-muted: #786d89;
+  --border-soft: rgba(192, 132, 252, .13);
+  --border-strong: rgba(171, 85, 247, .38);
+  --font-main: 'DM Sans', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-main);
+  background: var(--bg-deep-black);
   color: var(--text-primary);
-  font-family: var(--font-family-main);
-  margin: 0;
-  padding: 0;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; min-width: 320px; min-height: 100%; margin: 0; }
+html { min-height: 100%; background: var(--bg-deep-black); scroll-behavior: smooth; }
+body {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 52% -18%, rgba(112, 48, 174, .16), transparent 48%), var(--bg-deep-black);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+}
+button, input, select, textarea { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--secondary-lilas); outline-offset: 3px; }
+::selection { background: rgba(171,85,247,.35); color: #fff; }
+
+.zuvina-logo-image { display: block; flex: 0 0 auto; object-fit: contain; }
+
+/* Barra de sessão produzida pelo main.jsx, fora do App. */
 .barra-sessao {
-  max-width: 900px;
-  margin: 16px auto 0;
-  padding: 0 20px;
+  position: absolute;
+  z-index: 80;
+  top: 13px;
+  right: clamp(14px, 3vw, 38px);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
+  max-width: min(560px, calc(100vw - 28px));
+  margin: 0;
+  padding: 0;
 }
-
-.barra-sessao span {
-  color: #bcb2c9;
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-
+.barra-sessao span { max-width: 290px; overflow-wrap: anywhere; color: #a99db9; font-size: .72rem; }
 .barra-sessao button {
-  flex: none;
   width: auto;
-  padding: 10px 18px;
-  background: #4b293e;
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid rgba(192,132,252,.25);
+  border-radius: 9px;
+  background: rgba(171,85,247,.12);
+  color: #e7d8f7;
+  font-size: .72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .18s ease;
 }
+.barra-sessao button:hover { border-color: var(--secondary-lilas); background: rgba(171,85,247,.22); }
+.carregamento { margin: 0; padding: 22vh 20px; color: var(--secondary-lilas); text-align: center; font-size: .9rem; }
 
-.carregamento {
-  text-align: center;
-  margin-top: 80px;
-  color: #b99aff;
-}
-
-/* =========================================================
-   ZUVINA — NOVO SHELL COM NAVEGAÇÃO LATERAL
-   Camada visual: não altera consultas nem regras financeiras.
-   ========================================================= */
-.zuvina-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 252px minmax(0, 1fr);
-}
-.zuvina-sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 28px 18px 20px;
-  border-right: 1px solid rgba(192,132,252,.12);
-  background: rgba(13,10,22,.96);
-}
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 8px 30px;
-  color: var(--text-primary);
-  text-decoration: none;
-}
-.sidebar-brand span { display: grid; gap: 4px; min-width: 0; }
-.sidebar-brand strong { font: 800 1.12rem 'Montserrat',sans-serif; letter-spacing: .19em; }
-.sidebar-brand small { color: var(--text-muted); font-size: .52rem; letter-spacing: .08em; white-space: nowrap; }
-.sidebar-label { padding: 0 12px 12px; color: #716780; font-size: .62rem; font-weight: 800; letter-spacing: .14em; }
-.sidebar-nav { display: grid; gap: 6px; }
-.sidebar-link {
-  display: flex; align-items: center; gap: 13px; min-height: 46px;
-  padding: 0 13px; border: 1px solid transparent; border-radius: 12px;
-  color: #a69bb8; font-size: .86rem; font-weight: 600; text-decoration: none;
-  transition: background .18s ease, color .18s ease, border-color .18s ease;
-}
-.sidebar-link span { width: 20px; color: #9282a8; font-size: 1.15rem; text-align: center; }
-.sidebar-link:hover, .sidebar-link.ativo {
-  color: #f7f2ff; border-color: rgba(171,85,247,.18);
-  background: linear-gradient(90deg,rgba(171,85,247,.17),rgba(171,85,247,.045));
-}
-.sidebar-link.ativo span { color: var(--secondary-lilas); }
-.sidebar-bottom { margin-top: auto; display: grid; gap: 18px; }
-.sidebar-help { display: grid; gap: 7px; padding: 15px; border: 1px solid var(--border-soft); border-radius: 14px; background: linear-gradient(145deg,rgba(171,85,247,.10),rgba(18,16,29,.55)); }
-.sidebar-help-icon { color: var(--secondary-lilas); font-size: 1.1rem; }
-.sidebar-help strong { font-size: .78rem; }
-.sidebar-help small { color: var(--text-muted); font-size: .68rem; line-height: 1.5; }
-.sidebar-version { padding: 0 8px; color: #62596f; font-size: .65rem; }
-.zuvina-main { width: min(100%, 1480px); min-width: 0; padding: 30px clamp(22px,3vw,48px) 56px; margin: 0 auto; }
-.zuvina-main .cabecalho { padding-bottom: 22px; margin-bottom: 26px; }
-.zuvina-main .cabecalho .logotipo-wrapper { display: none; }
-.zuvina-main .cabecalho { justify-content: flex-end; }
-.zuvina-main main { display: grid; gap: 22px; }
-.zuvina-main .saldo { margin-bottom: 0; border-radius: 20px; box-shadow: none; }
-.zuvina-main .resumo-mensal, .zuvina-main .minhas-contas,
-.zuvina-main .grafico-container, .zuvina-main .formulario,
-.zuvina-main .historico, .zuvina-main .historico-movimentacoes,
-.zuvina-main .card-operacao { border-radius: 18px; box-shadow: none; }
-.zuvina-main .cards-resumo { gap: 14px; }
-.zuvina-main .card-resumo { border-radius: 14px; }
-.zuvina-main section[id] { scroll-margin-top: 22px; }
-
-@media (max-width: 900px) {
-  .zuvina-shell { grid-template-columns: 82px minmax(0,1fr); }
-  .zuvina-sidebar { padding: 22px 10px 16px; align-items: center; }
-  .sidebar-brand { padding: 0 0 28px; }
-  .sidebar-brand span, .sidebar-label, .sidebar-link:not(.ativo) { font-size: 0; }
-  .sidebar-brand span, .sidebar-help, .sidebar-version { display: none; }
-  .sidebar-nav { width: 100%; }
-  .sidebar-link { justify-content: center; padding: 0; font-size: 0; }
-  .sidebar-link span { font-size: 1.2rem; }
-  .zuvina-main { padding: 24px 20px 40px; }
-}
-@media (max-width: 620px) {
-  .zuvina-shell { display: block; padding-bottom: 74px; }
-  .zuvina-sidebar { position: fixed; z-index: 50; inset: auto 0 0; width: 100%; height: 66px; padding: 7px 10px; border-top: 1px solid var(--border-soft); border-right: 0; background: rgba(13,10,22,.97); backdrop-filter: blur(16px); }
-  .sidebar-brand, .sidebar-label, .sidebar-bottom { display: none; }
-  .sidebar-nav { display: flex; justify-content: space-around; gap: 4px; }
-  .sidebar-link { flex: 1; min-height: 48px; border-radius: 10px; }
-  .sidebar-link span { font-size: 1.25rem; }
-  .zuvina-main { padding: 18px 14px 30px; }
-  .zuvina-main .cabecalho { padding-bottom: 16px; margin-bottom: 18px; }
+@media (max-width: 680px) {
+  .barra-sessao { top: 10px; right: 12px; gap: 7px; }
+  .barra-sessao span { max-width: 185px; font-size: .64rem; }
+  .barra-sessao button { min-height: 31px; padding: 0 10px; font-size: .66rem; }
 }

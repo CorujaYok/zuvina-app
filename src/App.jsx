@@ -444,6 +444,8 @@ export default function App({ userId }) {
   const [descricaoTransferencia, setDescricaoTransferencia] = useState("");
   const [processandoConta, setProcessandoConta] = useState(false);
   const [codigoDestinoExterno, setCodigoDestinoExterno] = useState("");
+  const [valorTransferenciaExterna, setValorTransferenciaExterna] = useState("");
+  const [descricaoTransferenciaExterna, setDescricaoTransferenciaExterna] = useState("");
 
   useEffect(() => {
     if (contas.length) {
@@ -572,7 +574,7 @@ export default function App({ userId }) {
     evento.preventDefault();
     if (processandoConta) return;
 
-    const centavos = converterValorEmCentavos(valorTransferencia);
+    const centavos = converterValorEmCentavos(valorTransferenciaExterna);
     const principal = contas.find((conta) => conta.tipo === "principal");
 
     if (!principal) {
@@ -595,14 +597,14 @@ export default function App({ userId }) {
         p_codigo_destino: codigoDestinoExterno.trim(),
         p_valor_centavos: centavos,
         p_descricao:
-          descricaoTransferencia.trim() || "Transferência entre usuários",
+          descricaoTransferenciaExterna.trim() || "Transferência entre usuários",
       });
 
       if (error) throw error;
 
       setCodigoDestinoExterno("");
-      setValorTransferencia("");
-      setDescricaoTransferencia("");
+      setValorTransferenciaExterna("");
+      setDescricaoTransferenciaExterna("");
 
       await carregarContas();
       await carregarMovimentacoes();
@@ -719,6 +721,13 @@ export default function App({ userId }) {
     0
   );
 
+  // Caixinhas são as contas de reserva; a conta principal permanece em Minhas contas.
+  const caixinhas = contas.filter((conta) => conta.tipo !== "principal");
+  const saldoTotalCaixinhas = caixinhas.reduce(
+    (total, conta) => total + Number(conta.saldo_centavos || 0),
+    0
+  );
+
   const hoje = new Date();
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
@@ -768,8 +777,122 @@ export default function App({ userId }) {
   ];
 
   // ============================================================
-  // [08] RENDERIZAÇÃO DA INTERFACE
+  // [08] NAVEGAÇÃO E APRESENTAÇÃO
+  // Cada item do menu abre uma área própria. As operações continuam
+  // usando os mesmos dados, tabelas e RPCs existentes no Supabase.
   // ============================================================
+
+  const nomeMesAtual = hoje.toLocaleDateString("pt-BR", {
+    month: "long",
+    year: "numeric",
+  });
+
+  const transacoesRecentes = transacoes.slice(0, 5);
+  const contaPrincipal = contas.find((conta) => conta.tipo === "principal");
+
+  const paginas = {
+    inicio: {
+      titulo: "Visão geral",
+      descricao: "Acompanhe sua vida financeira em um só lugar.",
+    },
+    contas: {
+      titulo: "Minhas contas",
+      descricao: "Veja seus espaços financeiros e seus saldos.",
+    },
+    caixinhas: {
+      titulo: "Minhas caixinhas",
+      descricao: "Separe dinheiro para seus planos e objetivos.",
+    },
+    operacoes: {
+      titulo: "Transferências",
+      descricao: "Movimente seus valores entre contas ou envie para outro usuário Zuvina.",
+    },
+    analises: {
+      titulo: "Análises",
+      descricao: "Entenda como suas receitas e despesas estão distribuídas.",
+    },
+    movimentacoes: {
+      titulo: "Movimentações",
+      descricao: "Acompanhe as entradas e saídas das suas contas e caixinhas.",
+    },
+    transacoes: {
+      titulo: "Histórico",
+      descricao: "Consulte, pesquise, edite ou exclua seus lançamentos.",
+    },
+  };
+
+  const menu = [
+    { id: "inicio", icone: "⌂", nome: "Visão geral" },
+    { id: "contas", icone: "▣", nome: "Minhas contas" },
+    { id: "caixinhas", icone: "✧", nome: "Caixinhas" },
+    { id: "operacoes", icone: "⇄", nome: "Transferências" },
+    { id: "analises", icone: "◷", nome: "Análises" },
+    { id: "movimentacoes", icone: "↕", nome: "Movimentações" },
+    { id: "transacoes", icone: "≡", nome: "Histórico" },
+  ];
+
+  function navegarPara(pagina) {
+    setSecaoAtiva(pagina);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function atualizarDados() {
+    await Promise.all([carregarContas(), carregarMovimentacoes()]);
+    mostrarNotificacao("Informações atualizadas.");
+  }
+
+  function renderizarGrafico(altura = 250) {
+    if (dadosGrafico.length === 0) {
+      return (
+        <div className="estado-vazio">
+          <span className="estado-vazio-icone">◌</span>
+          <strong>Sem despesas neste mês</strong>
+          <p>Quando você registrar despesas, a distribuição aparecerá aqui.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grafico-area" style={{ height: altura }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={dadosGrafico}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={58}
+              outerRadius={84}
+              paddingAngle={4}
+              stroke="none"
+            >
+              {dadosGrafico.map((item, index) => (
+                <Cell
+                  key={item.name}
+                  fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
+                />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(valorTooltip) => formatarDinheiro(valorTooltip)}
+              contentStyle={{
+                background: "#171326",
+                border: "1px solid rgba(171,85,247,.35)",
+                borderRadius: "12px",
+                color: "#F7F2FF",
+              }}
+              itemStyle={{ color: "#F7F2FF" }}
+            />
+            <Legend
+              verticalAlign="bottom"
+              wrapperStyle={{ color: "#A69BB8", fontSize: "12px", paddingTop: "10px" }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
 
   return (
     <div className="zuvina-shell">
@@ -779,515 +902,301 @@ export default function App({ userId }) {
       />
 
       <aside className="zuvina-sidebar" aria-label="Navegação principal">
-        <a className="sidebar-brand" href="#inicio" aria-label="Zuvina - início">
-          <ZuvinaLogo width={42} height={42} />
-          <span><strong>ZUVINA</strong><small>SEU FUTURO, MAIS INTELIGENTE.</small></span>
-        </a>
-        <span className="sidebar-label">MENU PRINCIPAL</span>
+        <button
+          className="sidebar-brand"
+          type="button"
+          onClick={() => navegarPara("inicio")}
+          aria-label="Ir para a visão geral do Zuvina"
+        >
+          <ZuvinaLogo width={46} height={46} />
+          <span className="sidebar-brand-text">
+            <strong>ZUVINA</strong>
+            <small>SEU FUTURO, MAIS INTELIGENTE.</small>
+          </span>
+        </button>
+
+        <div className="sidebar-section-label">MENU PRINCIPAL</div>
         <nav className="sidebar-nav">
-          <a className={`sidebar-link ${secaoAtiva === "inicio" ? "ativo" : ""}`} href="#inicio" onClick={() => setSecaoAtiva("inicio")}><span>⌂</span>Visão geral</a>
-          <a className={`sidebar-link ${secaoAtiva === "contas" ? "ativo" : ""}`} href="#contas" onClick={() => setSecaoAtiva("contas")}><span>▣</span>Minhas contas</a>
-          <a className={`sidebar-link ${secaoAtiva === "operacoes" ? "ativo" : ""}`} href="#operacoes" onClick={() => setSecaoAtiva("operacoes")}><span>⇄</span>Transferências</a>
-          <a className={`sidebar-link ${secaoAtiva === "analises" ? "ativo" : ""}`} href="#analises" onClick={() => setSecaoAtiva("analises")}><span>◷</span>Análises</a>
-          <a className={`sidebar-link ${secaoAtiva === "movimentacoes" ? "ativo" : ""}`} href="#movimentacoes" onClick={() => setSecaoAtiva("movimentacoes")}><span>↕</span>Movimentações</a>
-          <a className={`sidebar-link ${secaoAtiva === "transacoes" ? "ativo" : ""}`} href="#transacoes" onClick={() => setSecaoAtiva("transacoes")}><span>≡</span>Histórico</a>
+          {menu.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`sidebar-link ${secaoAtiva === item.id ? "ativo" : ""}`}
+              onClick={() => navegarPara(item.id)}
+              aria-current={secaoAtiva === item.id ? "page" : undefined}
+            >
+              <span className="sidebar-link-icon" aria-hidden="true">{item.icone}</span>
+              <span className="sidebar-link-label">{item.nome}</span>
+              {secaoAtiva === item.id && <span className="sidebar-active-dot" />}
+            </button>
+          ))}
         </nav>
+
         <div className="sidebar-bottom">
-          <div className="sidebar-help"><span className="sidebar-help-icon">✦</span><strong>Seu dinheiro, mais leve.</strong><small>Organize sua vida financeira com clareza.</small></div>
-          <span className="sidebar-version">Zuvina · Ambiente seguro</span>
+          <div className="sidebar-help-card">
+            <span className="sidebar-help-symbol">✦</span>
+            <strong>Seu dinheiro, mais leve.</strong>
+            <p>Organize sua vida financeira com clareza e acompanhe cada passo.</p>
+          </div>
+          <div className="sidebar-footer">
+            <span className="sidebar-security-dot" />
+            <span>Zuvina · Ambiente seguro</span>
+          </div>
         </div>
       </aside>
 
       <div className="zuvina-main">
-      {/* Cabeçalho */}
-      <header className="cabecalho" id="inicio">
-        <div className="logotipo-wrapper">
-          <ZuvinaLogo />
-          <div>
-            <h1>ZUVINA</h1>
-            <span className="slogan-header">SEU FUTURO, MAIS INTELIGENTE.</span>
+        <header className="page-header">
+          <div className="page-header-copy">
+            <span className="eyebrow">ZUVINA / FINANCEIRO</span>
+            <h1>{paginas[secaoAtiva]?.titulo || "Visão geral"}</h1>
+            <p>{paginas[secaoAtiva]?.descricao || paginas.inicio.descricao}</p>
           </div>
-        </div>
-        <div className="usuario-saudacao">
-          <span>Olá, bem-vindo! 👋</span>
-        </div>
-      </header>
-
-      <main>
-        {carregandoDados && (
-          <p className="aviso-banco" role="status">
-            Carregando dados...
-          </p>
-        )}
-        {erroBanco && (
-          <p className="erro" role="alert">
-            {erroBanco}
-          </p>
-        )}
-
-        {/* Saldo Geral */}
-        <section className="saldo">
-          <div className="saldo-topo">
-            <p>Seu saldo geral</p>
+          <div className="page-header-actions">
             <button
               type="button"
-              className="botao-olho"
+              className="header-icon-button"
               onClick={() => setMostrarValores((atual) => !atual)}
-              aria-label={mostrarValores ? "Ocultar saldo" : "Mostrar saldo"}
+              aria-label={mostrarValores ? "Ocultar valores" : "Mostrar valores"}
+              title={mostrarValores ? "Ocultar valores" : "Mostrar valores"}
             >
-              {mostrarValores ? "👁️" : "🙈"}
+              {mostrarValores ? "◉" : "◎"}
             </button>
-          </div>
-          <h2>{mostrarValores ? formatarDinheiro(saldo) : "R$ ••••••"}</h2>
-          <span className="saldo-subtitulo">Seu dinheiro, mais leve.</span>
-        </section>
-
-        {/* Resumo Mensal */}
-        <section className="resumo-mensal">
-          <div className="resumo-cabecalho">
-            <h3>Resumo do mês</h3>
-            <span className="mes-referencia">
-              {hoje.toLocaleDateString("pt-BR", {
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-          <div className="cards-resumo">
-            <div className="card-resumo card-receita">
-              <span>Receitas</span>
-              <strong className="receita">
-                {mostrarValores ? formatarDinheiro(receitasMes) : "R$ •••"}
-              </strong>
-            </div>
-            <div className="card-resumo card-despesa">
-              <span>Despesas</span>
-              <strong className="despesa">
-                {mostrarValores ? formatarDinheiro(despesasMes) : "R$ •••"}
-              </strong>
-            </div>
-            <div
-              className={`card-resumo ${
-                resultadoMes >= 0
-                  ? "card-resultado-positivo"
-                  : "card-resultado-negativo"
-              }`}
-            >
-              <span>Resultado do mês</span>
-              <strong className={resultadoMes >= 0 ? "receita" : "despesa"}>
-                {mostrarValores ? formatarDinheiro(resultadoMes) : "R$ •••"}
-              </strong>
-            </div>
-          </div>
-        </section>
-
-        {/* Minhas Contas e Caixinhas */}
-        <section className="minhas-contas" id="contas">
-          <div className="resumo-cabecalho">
-            <div>
-              <h3>Minhas contas</h3>
-              <p className="texto-secundario">
-                Organize seu dinheiro em diferentes espaços.
-              </p>
-            </div>
-            <span>🦉</span>
-          </div>
-
-          {carregandoContas ? (
-            <p className="aviso-banco">Carregando contas...</p>
-          ) : (
-            <div className="lista-contas">
-              {contas.map((conta) => (
-                <CardConta
-                  key={conta.id}
-                  conta={conta}
-                  mostrarValores={mostrarValores}
-                  onCopiarNotificacao={mostrarNotificacao}
-                />
-              ))}
-            </div>
-          )}
-
-          <form className="formulario-conta" onSubmit={criarContaReserva}>
-            <h4>Criar conta de reserva</h4>
-            <div className="campo">
-              <label htmlFor="nome-conta-reserva">Nome da conta</label>
-              <input
-                id="nome-conta-reserva"
-                value={nomeNovaConta}
-                onChange={(e) => setNomeNovaConta(e.target.value)}
-                placeholder="Ex.: Viagens, Emergência..."
-                maxLength={40}
-                minLength={2}
-                required
-              />
-            </div>
             <button
-              type="submit"
-              className="botao-adicionar"
-              disabled={processandoConta || carregandoContas}
+              type="button"
+              className="header-refresh-button"
+              onClick={atualizarDados}
+              disabled={carregandoContas || carregandoMovimentacoes}
+              title="Atualizar contas e movimentações"
             >
-              {processandoConta ? "Criando..." : "+ Criar conta"}
+              ↻ <span>Atualizar</span>
             </button>
-          </form>
-        </section>
-
-        {/* Operações Lado a Lado (Grid) */}
-        <div className="operacoes-grid">
-          {/* Movimentar Caixinhas */}
-          <section className="card-operacao" id="operacoes">
-            <h3>💜 Movimentar Caixinhas</h3>
-            <p className="texto-secundario">Organize o saldo entre as suas contas.</p>
-            <form onSubmit={realizarTransferencia}>
-              <div className="campos-linha">
-                <div className="campo">
-                  <label htmlFor="conta-origem">Origem</label>
-                  <select
-                    id="conta-origem"
-                    value={contaOrigem}
-                    onChange={(e) => setContaOrigem(e.target.value)}
-                    required
-                  >
-                    <option value="">Selecione a origem</option>
-                    {contas.map((conta) => (
-                      <option key={conta.id} value={conta.id}>
-                        {conta.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="campo">
-                  <label htmlFor="conta-destino">Destino</label>
-                  <select
-                    id="conta-destino"
-                    value={contaDestino}
-                    onChange={(e) => setContaDestino(e.target.value)}
-                    required
-                  >
-                    <option value="">Selecione o destino</option>
-                    {contas
-                      .filter((conta) => conta.id !== contaOrigem)
-                      .map((conta) => (
-                        <option key={conta.id} value={conta.id}>
-                          {conta.nome}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="campos-linha">
-                <div className="campo">
-                  <label htmlFor="valor-transferencia-caixinha">Valor (R$)</label>
-                  <input
-                    id="valor-transferencia-caixinha"
-                    value={valorTransferencia}
-                    onChange={(e) => setValorTransferencia(e.target.value)}
-                    placeholder="Ex.: 100,00"
-                    inputMode="decimal"
-                    required
-                  />
-                </div>
-
-                <div className="campo">
-                  <label htmlFor="descricao-transferencia-caixinha">Descrição</label>
-                  <input
-                    id="descricao-transferencia-caixinha"
-                    value={descricaoTransferencia}
-                    onChange={(e) => setDescricaoTransferencia(e.target.value)}
-                    placeholder="Opcional"
-                    maxLength={120}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="botao-adicionar"
-                disabled={processandoConta || carregandoContas || contas.length < 2}
-              >
-                {processandoConta ? "Movimentando..." : "Movimentar dinheiro"}
-              </button>
-            </form>
-          </section>
-
-          {/* Transferência Externa */}
-          <section className="card-operacao">
-            <h3>🚀 Transferir para Outra Pessoa</h3>
-            <p className="texto-secundario">Envie para outro usuário Zuvina.</p>
-            <form onSubmit={realizarTransferenciaExterna}>
-              <div className="campo">
-                <label htmlFor="codigo-destino">Código do destinatário</label>
-                <input
-                  id="codigo-destino"
-                  value={codigoDestinoExterno}
-                  onChange={(e) => setCodigoDestinoExterno(e.target.value)}
-                  placeholder="Cole o código da conta destino"
-                  required
-                />
-              </div>
-
-              <div className="campos-linha">
-                <div className="campo">
-                  <label htmlFor="valor-transferencia-externa">Valor (R$)</label>
-                  <input
-                    id="valor-transferencia-externa"
-                    value={valorTransferencia}
-                    onChange={(e) => setValorTransferencia(e.target.value)}
-                    placeholder="Ex.: 50,00"
-                    inputMode="decimal"
-                    required
-                  />
-                </div>
-
-                <div className="campo">
-                  <label htmlFor="descricao-transferencia-externa">Descrição</label>
-                  <input
-                    id="descricao-transferencia-externa"
-                    value={descricaoTransferencia}
-                    onChange={(e) => setDescricaoTransferencia(e.target.value)}
-                    placeholder="Opcional"
-                    maxLength={120}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="botao-adicionar"
-                disabled={
-                  processandoConta ||
-                  carregandoContas ||
-                  !contas.some((c) => c.tipo === "principal")
-                }
-              >
-                {processandoConta ? "Enviando..." : "Enviar transferência"}
-              </button>
-            </form>
-          </section>
-        </div>
-
-        {/* Dashboard: Gráfico e Nova Transação */}
-        <div className="dashboard-duas-colunas" id="analises">
-          <section className="grafico-container">
-            <h3>Despesas por categoria</h3>
-            <p className="texto-secundario">Distribuição das despesas do mês atual</p>
-            {dadosGrafico.length === 0 ? (
-              <p className="texto-vazio">
-                Adicione uma despesa para visualizar o gráfico.
-              </p>
-            ) : (
-              <div className="area-grafico">
-                <ResponsiveContainer width="100%" height={240}>
-                  <PieChart>
-                    <Pie
-                      data={dadosGrafico}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={85}
-                      paddingAngle={4}
-                      stroke="none"
-                    >
-                      {dadosGrafico.map((item, index) => (
-                        <Cell
-                          key={item.name}
-                          fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(valorTooltip) => formatarDinheiro(valorTooltip)}
-                      contentStyle={{
-                        background: "#130F24",
-                        border: "1px solid rgba(171, 85, 247, 0.4)",
-                        borderRadius: "12px",
-                        color: "#F4F0FA",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-                      }}
-                      itemStyle={{ color: "#F4F0FA" }}
-                    />
-                    <Legend
-                      wrapperStyle={{
-                        color: "#9CA3AF",
-                        fontSize: "12px",
-                        paddingTop: "10px",
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </section>
-
-          <section className="formulario">
-            <h3>Nova transação</h3>
-            <div className="seletor-tipo">
-              <button
-                type="button"
-                className={tipo === "receita" ? "ativo tipo-receita" : ""}
-                onClick={() => mudarTipo("receita")}
-              >
-                + Receita
-              </button>
-              <button
-                type="button"
-                className={tipo === "despesa" ? "ativo tipo-despesa" : ""}
-                onClick={() => mudarTipo("despesa")}
-              >
-                - Despesa
-              </button>
-            </div>
-
-            <form onSubmit={adicionarTransacao}>
-              <div className="campo">
-                <label htmlFor="descricao">Descrição</label>
-                <input
-                  id="descricao"
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  placeholder="Ex.: Compras no mercado"
-                />
-              </div>
-
-              <div className="campos-linha">
-                <div className="campo">
-                  <label htmlFor="valor">Valor (R$)</label>
-                  <input
-                    id="valor"
-                    value={valor}
-                    onChange={(e) => setValor(e.target.value)}
-                    placeholder="Ex.: 35,50"
-                    inputMode="decimal"
-                  />
-                </div>
-                <div className="campo">
-                  <label htmlFor="categoria">Categoria</label>
-                  <select
-                    id="categoria"
-                    value={categoria}
-                    onChange={(e) => setCategoria(e.target.value)}
-                  >
-                    {CATEGORIAS[tipo].map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {erro && (
-                <p className="erro" role="alert">
-                  {erro}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                className="botao-adicionar"
-                disabled={salvando || carregandoDados}
-              >
-                {salvando ? "Aguarde..." : "+ Adicionar transação"}
-              </button>
-            </form>
-          </section>
-        </div>
-
-        {/* Histórico de Movimentações entre Contas */}
-        <section className="historico-movimentacoes" id="movimentacoes">
-          <h3>Movimentações de contas</h3>
-          <p className="texto-secundario">
-            Acompanhe entradas e saídas das suas Caixinhas e transferências.
-          </p>
-
-          {carregandoMovimentacoes ? (
-            <p className="aviso-banco">Carregando movimentações...</p>
-          ) : movimentacoes.length === 0 ? (
-            <p className="texto-vazio">
-              Nenhuma movimentação de conta encontrada.
-            </p>
-          ) : (
-            <ul className="lista-transacoes">
-              {movimentacoes.map((mov) => {
-                const conta = contas.find((c) => c.id === mov.conta_id);
-                return (
-                  <ItemMovimentacao
-                    key={mov.id}
-                    mov={mov}
-                    contaNome={conta?.nome}
-                    mostrarValores={mostrarValores}
-                  />
-                );
-              })}
-            </ul>
-          )}
-        </section>
-
-        {/* Histórico Geral */}
-        <section className="historico" id="transacoes">
-          <h3>Últimas transações</h3>
-          <div className="filtros">
-            <input
-              aria-label="Pesquisar transações"
-              placeholder="Pesquisar transações..."
-              value={pesquisa}
-              onChange={(e) => setPesquisa(e.target.value)}
-            />
-            <select
-              aria-label="Filtrar por tipo"
-              value={filtroTipo}
-              onChange={(e) => setFiltroTipo(e.target.value)}
-            >
-              <option value="todos">Todas</option>
-              <option value="receita">Receitas</option>
-              <option value="despesa">Despesas</option>
-            </select>
-            <select
-              aria-label="Filtrar por categoria"
-              value={filtroCategoria}
-              onChange={(e) => setFiltroCategoria(e.target.value)}
-            >
-              <option value="todas">Todas as categorias</option>
-              {todasCategorias.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
           </div>
+        </header>
 
-          {!carregandoDados && !erroBanco && transacoesFiltradas.length === 0 ? (
-            <p className="texto-vazio">Nenhuma transação encontrada.</p>
-          ) : (
-            <ul className="lista-transacoes">
-              {transacoesFiltradas.map((t) => (
-                <ItemTransacao
-                  key={t.id}
-                  t={t}
-                  mostrarValores={mostrarValores}
-                  salvando={salvando}
-                  carregandoDados={carregandoDados}
-                  transacaoEmEdicao={transacaoEmEdicao}
-                  onIniciarEdicao={iniciarEdicao}
-                  onExcluir={excluirTransacao}
-                  onSalvarEdicao={salvarEdicao}
-                  onCancelarEdicao={() => setTransacaoEmEdicao(null)}
-                  descricaoEdicao={descricaoEdicao}
-                  setDescricaoEdicao={setDescricaoEdicao}
-                  valorEdicao={valorEdicao}
-                  setValorEdicao={setValorEdicao}
-                  categoriaEdicao={categoriaEdicao}
-                  setCategoriaEdicao={setCategoriaEdicao}
-                />
-              ))}
-            </ul>
+        {carregandoDados && (
+          <div className="inline-status" role="status">
+            <span className="loading-dot" /> Carregando seus dados financeiros...
+          </div>
+        )}
+        {erroBanco && (
+          <div className="inline-error" role="alert">{erroBanco}</div>
+        )}
+
+        <main className="page-content">
+          {secaoAtiva === "inicio" && (
+            <>
+              <section className="overview-welcome-row">
+                <div>
+                  <span className="welcome-kicker">PAINEL FINANCEIRO</span>
+                  <h2>Olá! Que bom ter você aqui. <span>✦</span></h2>
+                  <p>Veja o resumo da sua organização financeira.</p>
+                </div>
+                <div className="date-chip">{hoje.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</div>
+              </section>
+
+              <div className="overview-top-grid">
+                <section className="balance-card panel-card">
+                  <div className="balance-card-orbit" aria-hidden="true" />
+                  <div className="balance-card-top">
+                    <span>Saldo total disponível</span>
+                    <span className="balance-card-icon">◈</span>
+                  </div>
+                  <div className="balance-amount">
+                    {mostrarValores ? formatarDinheiro(saldo) : "R$ ••••••"}
+                  </div>
+                  <div className="balance-card-bottom">
+                    <span><i className="status-dot" /> Visão consolidada das suas contas</span>
+                    <button type="button" onClick={() => navegarPara("contas")}>Ver contas <b>→</b></button>
+                  </div>
+                </section>
+
+                <section className="monthly-overview panel-card">
+                  <div className="panel-heading compact-heading">
+                    <div>
+                      <span className="eyebrow">DESEMPENHO</span>
+                      <h3>Resumo do mês</h3>
+                    </div>
+                    <span className="month-chip">{nomeMesAtual}</span>
+                  </div>
+                  <div className="monthly-stat-list">
+                    <div className="monthly-stat income-stat">
+                      <span><i /> Receitas</span>
+                      <strong>{mostrarValores ? formatarDinheiro(receitasMes) : "R$ •••"}</strong>
+                    </div>
+                    <div className="monthly-stat expense-stat">
+                      <span><i /> Despesas</span>
+                      <strong>{mostrarValores ? formatarDinheiro(despesasMes) : "R$ •••"}</strong>
+                    </div>
+                    <div className={`monthly-stat ${resultadoMes >= 0 ? "result-positive" : "result-negative"}`}>
+                      <span><i /> Resultado do mês</span>
+                      <strong>{mostrarValores ? formatarDinheiro(resultadoMes) : "R$ •••"}</strong>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div className="quick-actions-grid">
+                <button type="button" className="quick-action" onClick={() => navegarPara("operacoes")}>
+                  <span className="quick-action-icon">⇄</span>
+                  <span><strong>Transferir</strong><small>Movimente seu dinheiro</small></span>
+                  <b>→</b>
+                </button>
+                <button type="button" className="quick-action" onClick={() => navegarPara("analises")}>
+                  <span className="quick-action-icon">◷</span>
+                  <span><strong>Ver análises</strong><small>Acompanhe seus gastos</small></span>
+                  <b>→</b>
+                </button>
+                <button type="button" className="quick-action" onClick={() => navegarPara("caixinhas")}>
+                  <span className="quick-action-icon">✧</span>
+                  <span><strong>Minhas caixinhas</strong><small>Cuide dos seus objetivos</small></span>
+                  <b>→</b>
+                </button>
+              </div>
+
+              <div className="dashboard-bottom-grid">
+                <section className="content-panel panel-card">
+                  <div className="panel-heading">
+                    <div><span className="eyebrow">ACOMPANHAMENTO</span><h3>Últimas transações</h3></div>
+                    <button type="button" className="text-link" onClick={() => navegarPara("transacoes")}>Ver histórico →</button>
+                  </div>
+                  {carregandoDados ? (
+                    <p className="muted-message">Carregando transações...</p>
+                  ) : transacoesRecentes.length === 0 ? (
+                    <div className="empty-inline"><span>✧</span><strong>Nenhum lançamento ainda</strong><p>Suas receitas e despesas aparecerão aqui.</p></div>
+                  ) : (
+                    <ul className="transaction-list dashboard-transaction-list">
+                      {transacoesRecentes.map((t) => (
+                        <li className="transaction-row" key={t.id}>
+                          <span className={`transaction-symbol ${t.tipo === "receita" ? "symbol-income" : "symbol-expense"}`}>{t.tipo === "receita" ? "↙" : "↗"}</span>
+                          <span className="transaction-description"><strong>{t.descricao}</strong><small>{t.categoria || "Sem categoria"} · {formatarData(t.data)}</small></span>
+                          <strong className={`transaction-amount ${t.tipo}`}>{t.tipo === "receita" ? "+" : "−"}{mostrarValores ? formatarDinheiro(t.valor) : "R$ •••"}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                <section className="content-panel panel-card">
+                  <div className="panel-heading">
+                    <div><span className="eyebrow">SEU MÊS</span><h3>Despesas por categoria</h3></div>
+                    <button type="button" className="text-link" onClick={() => navegarPara("analises")}>Detalhes →</button>
+                  </div>
+                  {renderizarGrafico(250)}
+                </section>
+              </div>
+            </>
           )}
-        </section>
-      </main>
+
+          {secaoAtiva === "contas" && (
+            <>
+              <section className="page-summary-strip">
+                <div><span>Saldo da conta principal</span><strong>{mostrarValores ? formatarDinheiro(contaPrincipal?.saldo_centavos || 0) : "R$ ••••••"}</strong></div>
+                <div><span>Total de contas</span><strong>{contas.length}</strong></div>
+                <div><span>Contas de reserva</span><strong>{caixinhas.length}</strong></div>
+              </section>
+              <section className="content-panel panel-card full-panel">
+                <div className="panel-heading">
+                  <div><span className="eyebrow">ESPAÇOS FINANCEIROS</span><h3>Suas contas</h3><p>Todos os seus saldos em um só lugar.</p></div>
+                  <span className="panel-heading-icon">▣</span>
+                </div>
+                {carregandoContas ? <p className="muted-message">Carregando contas...</p> : contas.length === 0 ? (
+                  <div className="empty-inline"><span>▣</span><strong>Nenhuma conta encontrada</strong><p>As contas vinculadas ao seu usuário aparecerão aqui.</p></div>
+                ) : (
+                  <div className="accounts-grid">
+                    {contas.map((conta) => (
+                      <CardConta key={conta.id} conta={conta} mostrarValores={mostrarValores} onCopiarNotificacao={mostrarNotificacao} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+
+          {secaoAtiva === "caixinhas" && (
+            <>
+              <section className="savings-hero panel-card">
+                <div><span className="eyebrow">OBJETIVOS E RESERVAS</span><h2>Um passo de cada vez.</h2><p>Guarde para o que realmente importa, no seu ritmo.</p></div>
+                <div className="savings-total"><span>Total guardado</span><strong>{mostrarValores ? formatarDinheiro(saldoTotalCaixinhas) : "R$ ••••••"}</strong><small>{caixinhas.length} {caixinhas.length === 1 ? "caixinha criada" : "caixinhas criadas"}</small></div>
+              </section>
+              <section className="content-panel panel-card full-panel">
+                <div className="panel-heading"><div><span className="eyebrow">SUAS RESERVAS</span><h3>Minhas caixinhas</h3><p>Os valores abaixo vêm das suas contas de reserva existentes.</p></div><span className="panel-heading-icon">✧</span></div>
+                {carregandoContas ? <p className="muted-message">Carregando caixinhas...</p> : caixinhas.length === 0 ? (
+                  <div className="empty-inline"><span>✧</span><strong>Seu primeiro objetivo começa aqui</strong><p>Crie uma caixinha para uma viagem, emergência ou outro plano.</p></div>
+                ) : (
+                  <div className="accounts-grid savings-grid">
+                    {caixinhas.map((conta) => <CardConta key={conta.id} conta={conta} mostrarValores={mostrarValores} onCopiarNotificacao={mostrarNotificacao} />)}
+                  </div>
+                )}
+                <form className="form-card" onSubmit={criarContaReserva}>
+                  <div><span className="eyebrow">NOVO OBJETIVO</span><h4>Criar uma caixinha</h4><p>Escolha um nome que represente o seu plano.</p></div>
+                  <div className="form-card-controls">
+                    <div className="field-group"><label htmlFor="nome-conta-reserva">Nome da caixinha</label><input id="nome-conta-reserva" value={nomeNovaConta} onChange={(e) => setNomeNovaConta(e.target.value)} placeholder="Ex.: Viagem, Emergência..." maxLength={40} minLength={2} required /></div>
+                    <button type="submit" className="primary-button" disabled={processandoConta || carregandoContas}>{processandoConta ? "Criando..." : "+ Criar caixinha"}</button>
+                  </div>
+                </form>
+              </section>
+            </>
+          )}
+
+          {secaoAtiva === "operacoes" && (
+            <div className="operations-grid">
+              <section className="content-panel panel-card operation-panel">
+                <div className="panel-heading"><div><span className="eyebrow">ENTRE SUAS CONTAS</span><h3>Movimentar dinheiro</h3><p>Transfira valores entre sua conta principal e suas caixinhas.</p></div><span className="panel-heading-icon">⇄</span></div>
+                <form onSubmit={realizarTransferencia} className="modern-form">
+                  <div className="field-group"><label htmlFor="conta-origem">Conta de origem</label><select id="conta-origem" value={contaOrigem} onChange={(e) => setContaOrigem(e.target.value)} required><option value="">Selecione a origem</option>{contas.map((conta) => <option key={conta.id} value={conta.id}>{conta.nome}</option>)}</select></div>
+                  <div className="field-group"><label htmlFor="conta-destino">Conta de destino</label><select id="conta-destino" value={contaDestino} onChange={(e) => setContaDestino(e.target.value)} required><option value="">Selecione o destino</option>{contas.filter((conta) => conta.id !== contaOrigem).map((conta) => <option key={conta.id} value={conta.id}>{conta.nome}</option>)}</select></div>
+                  <div className="field-group"><label htmlFor="valor-transferencia-caixinha">Valor (R$)</label><input id="valor-transferencia-caixinha" value={valorTransferencia} onChange={(e) => setValorTransferencia(e.target.value)} placeholder="0,00" inputMode="decimal" required /></div>
+                  <div className="field-group"><label htmlFor="descricao-transferencia-caixinha">Descrição <span>(opcional)</span></label><input id="descricao-transferencia-caixinha" value={descricaoTransferencia} onChange={(e) => setDescricaoTransferencia(e.target.value)} placeholder="Ex.: Reserva mensal" maxLength={120} /></div>
+                  <button type="submit" className="primary-button full-width-button" disabled={processandoConta || carregandoContas || contas.length < 2}>{processandoConta ? "Movimentando..." : "Confirmar movimentação"} <span>→</span></button>
+                </form>
+              </section>
+
+              <section className="content-panel panel-card operation-panel">
+                <div className="panel-heading"><div><span className="eyebrow">PARA OUTRO USUÁRIO</span><h3>Enviar transferência</h3><p>Envie valores para outro usuário Zuvina usando o código da conta.</p></div><span className="panel-heading-icon">↗</span></div>
+                <form onSubmit={realizarTransferenciaExterna} className="modern-form">
+                  <div className="field-group field-span-two"><label htmlFor="codigo-destino">Código do destinatário</label><input id="codigo-destino" value={codigoDestinoExterno} onChange={(e) => setCodigoDestinoExterno(e.target.value)} placeholder="Cole o código da conta de destino" required /></div>
+                  <div className="field-group"><label htmlFor="valor-transferencia-externa">Valor (R$)</label><input id="valor-transferencia-externa" value={valorTransferenciaExterna} onChange={(e) => setValorTransferenciaExterna(e.target.value)} placeholder="0,00" inputMode="decimal" required /></div>
+                  <div className="field-group"><label htmlFor="descricao-transferencia-externa">Descrição <span>(opcional)</span></label><input id="descricao-transferencia-externa" value={descricaoTransferenciaExterna} onChange={(e) => setDescricaoTransferenciaExterna(e.target.value)} placeholder="Ex.: Pagamento" maxLength={120} /></div>
+                  <div className="transfer-info field-span-two"><span>ⓘ</span><p>A transferência utiliza a conta principal e o procedimento de segurança já configurado no Zuvina.</p></div>
+                  <button type="submit" className="primary-button full-width-button" disabled={processandoConta || carregandoContas || !contaPrincipal}>{processandoConta ? "Enviando..." : "Enviar transferência"} <span>→</span></button>
+                </form>
+              </section>
+            </div>
+          )}
+
+          {secaoAtiva === "analises" && (
+            <>
+              <section className="page-summary-strip analysis-summary">
+                <div><span>Receitas do mês</span><strong className="income-text">{mostrarValores ? formatarDinheiro(receitasMes) : "R$ ••••••"}</strong></div>
+                <div><span>Despesas do mês</span><strong className="expense-text">{mostrarValores ? formatarDinheiro(despesasMes) : "R$ ••••••"}</strong></div>
+                <div><span>Resultado</span><strong className={resultadoMes >= 0 ? "income-text" : "expense-text"}>{mostrarValores ? formatarDinheiro(resultadoMes) : "R$ ••••••"}</strong></div>
+              </section>
+              <div className="analysis-grid">
+                <section className="content-panel panel-card"><div className="panel-heading"><div><span className="eyebrow">DISTRIBUIÇÃO</span><h3>Despesas por categoria</h3><p>{nomeMesAtual}</p></div></div>{renderizarGrafico(330)}</section>
+                <section className="content-panel panel-card"><div className="panel-heading"><div><span className="eyebrow">DETALHAMENTO</span><h3>Resumo das categorias</h3><p>Valores registrados como despesa neste mês.</p></div></div>
+                  {dadosGrafico.length === 0 ? <p className="muted-message">Ainda não há despesas para detalhar.</p> : <ul className="category-breakdown">{dadosGrafico.map((item, index) => (<li key={item.name}><span className="category-color" style={{ background: CORES_GRAFICO[index % CORES_GRAFICO.length] }} /><span>{item.name}</span><strong>{mostrarValores ? formatarDinheiro(item.value) : "R$ •••"}</strong></li>))}</ul>}
+                </section>
+              </div>
+              <section className="content-panel panel-card full-panel"><div className="panel-heading"><div><span className="eyebrow">PERÍODO ATUAL</span><h3>Movimento financeiro</h3></div><span className="month-chip">{nomeMesAtual}</span></div><div className="analysis-bars"><div><span>Receitas</span><div className="analysis-track"><i className="bar-income" style={{ width: `${receitasMes + despesasMes > 0 ? Math.max(3, receitasMes / (receitasMes + despesasMes) * 100) : 0}%` }} /></div><strong>{mostrarValores ? formatarDinheiro(receitasMes) : "R$ •••"}</strong></div><div><span>Despesas</span><div className="analysis-track"><i className="bar-expense" style={{ width: `${receitasMes + despesasMes > 0 ? Math.max(3, despesasMes / (receitasMes + despesasMes) * 100) : 0}%` }} /></div><strong>{mostrarValores ? formatarDinheiro(despesasMes) : "R$ •••"}</strong></div></div></section>
+            </>
+          )}
+
+          {secaoAtiva === "movimentacoes" && (
+            <section className="content-panel panel-card full-panel"><div className="panel-heading"><div><span className="eyebrow">CONTAS E CAIXINHAS</span><h3>Movimentações</h3><p>Entradas e saídas registradas entre seus espaços financeiros.</p></div><span className="panel-heading-icon">↕</span></div>
+              {carregandoMovimentacoes ? <p className="muted-message">Carregando movimentações...</p> : movimentacoes.length === 0 ? <div className="empty-inline"><span>↕</span><strong>Nenhuma movimentação encontrada</strong><p>Quando você movimentar dinheiro entre suas contas, os registros aparecerão aqui.</p></div> : <ul className="transaction-list">{movimentacoes.map((mov) => { const conta = contas.find((c) => c.id === mov.conta_id); return <ItemMovimentacao key={mov.id} mov={mov} contaNome={conta?.nome} mostrarValores={mostrarValores} />; })}</ul>}
+            </section>
+          )}
+
+          {secaoAtiva === "transacoes" && (
+            <section className="content-panel panel-card full-panel"><div className="panel-heading"><div><span className="eyebrow">TODOS OS LANÇAMENTOS</span><h3>Histórico de transações</h3><p>Pesquise e filtre seus registros. Você também pode editar ou excluir um lançamento.</p></div><span className="panel-heading-icon">≡</span></div>
+              <div className="history-filters"><div className="field-group history-search"><label htmlFor="pesquisa-transacoes">Pesquisar</label><input id="pesquisa-transacoes" placeholder="Buscar por descrição..." value={pesquisa} onChange={(e) => setPesquisa(e.target.value)} /></div><div className="field-group"><label htmlFor="filtro-tipo">Tipo</label><select id="filtro-tipo" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}><option value="todos">Todas</option><option value="receita">Receitas</option><option value="despesa">Despesas</option></select></div><div className="field-group"><label htmlFor="filtro-categoria">Categoria</label><select id="filtro-categoria" value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)}><option value="todas">Todas as categorias</option>{todasCategorias.map((item) => <option key={item} value={item}>{item}</option>)}</select></div></div>
+              {!carregandoDados && !erroBanco && transacoesFiltradas.length === 0 ? <div className="empty-inline"><span>⌕</span><strong>Nenhuma transação encontrada</strong><p>Tente ajustar os filtros ou registre um novo lançamento.</p></div> : <ul className="transaction-list history-list">{transacoesFiltradas.map((t) => <ItemTransacao key={t.id} t={t} mostrarValores={mostrarValores} salvando={salvando} carregandoDados={carregandoDados} transacaoEmEdicao={transacaoEmEdicao} onIniciarEdicao={iniciarEdicao} onExcluir={excluirTransacao} onSalvarEdicao={salvarEdicao} onCancelarEdicao={() => setTransacaoEmEdicao(null)} descricaoEdicao={descricaoEdicao} setDescricaoEdicao={setDescricaoEdicao} valorEdicao={valorEdicao} setValorEdicao={setValorEdicao} categoriaEdicao={categoriaEdicao} setCategoriaEdicao={setCategoriaEdicao} />)}</ul>}
+            </section>
+          )}
+        </main>
+
+        <footer className="app-footer"><span><ZuvinaLogo width={22} height={22} /> Zuvina</span><small>Seu futuro, mais inteligente.</small></footer>
       </div>
     </div>
   );
